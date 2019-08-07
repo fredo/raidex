@@ -3,6 +3,38 @@ from raidex.constants import DEFAULT_OFFER_LIFETIME
 from raidex.utils.random import create_random_32_bytes_id
 
 
+class LimitOrderFactory:
+
+    @classmethod
+    def from_dict(cls, data):
+
+        if 'order_id' not in data or data['order_id'] is None:
+            order_id = create_random_32_bytes_id()
+        else:
+            order_id = data['order_id']
+
+        if 'lifetime' not in data:
+            data['lifetime'] = DEFAULT_OFFER_LIFETIME
+
+        if data['order_type'] == 'BUY':
+            order_type = OfferType.BUY
+        else:
+            order_type = OfferType.SELL
+
+        obj = LimitOrder(
+            order_id,
+            order_type,
+            data['amount'],
+            data['price'],
+            data['lifetime']
+        )
+
+        from . import fsm_order
+        fsm_order.add_model(obj)
+
+        return obj
+
+
 class LimitOrder:
 
     __slots__ = [
@@ -21,31 +53,6 @@ class LimitOrder:
         self.price = price
         self.lifetime = lifetime
         self.corresponding_offers = dict()
-
-    @classmethod
-    def from_dict(cls, data):
-
-        if 'order_id' not in data or data['order_id'] is None:
-            order_id = create_random_32_bytes_id()
-        else:
-            order_id = data['order_id']
-
-        if 'lifetime' not in data:
-            data['lifetime'] = DEFAULT_OFFER_LIFETIME
-
-        if data['order_type'] == 'BUY':
-            order_type = OfferType.BUY
-        else:
-            order_type = OfferType.SELL
-
-        obj = cls(
-            order_id,
-            order_type,
-            data['amount'],
-            data['price'],
-            data['lifetime']
-        )
-        return obj
 
     def add_offer(self, offer):
         self.corresponding_offers[offer.offer_id] = offer
@@ -71,19 +78,15 @@ class LimitOrder:
     @property
     def completed(self):
 
-        if self.open:
-            return False
-
-        for offer in self.corresponding_offers.values():
-            if offer.status == 'completed':
-                return True
+        if self.status == 'completed':
+            return True
         return False
 
     @property
     def canceled(self):
-        for offer in self.corresponding_offers.values():
-            if offer.status == 'canceled':
-                return True
+
+        if self.status == 'canceled':
+            return True
         return False
 
     @property

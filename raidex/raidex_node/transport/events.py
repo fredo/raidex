@@ -94,14 +94,14 @@ def _create_offer_msg(offer, market):
     timeout = offer.timeout_date
 
     if offer.type == OfferType.SELL:
-        return message_format.SwapOffer(market.quote_token,
-                                        offer.quote_amount,
-                                        market.base_token,
-                                        offer.base_amount,
-                                        offer.offer_id, timeout)
+        return message_format.OrderMessage(market.quote_token,
+                                           offer.quote_amount,
+                                           market.base_token,
+                                           offer.base_amount,
+                                           offer.offer_id, timeout)
     else:
-        return message_format.SwapOffer(market.base_token,
-                                        offer.base_amount,
-                                        market.quote_token,
-                                        offer.quote_amount,
-                                        offer.offer_id, timeout)
+        return message_format.OrderMessage(market.base_token,
+                                           offer.base_amount,
+                                           market.quote_token,
+                                           offer.quote_amount,
+                                           offer.offer_id, timeout)

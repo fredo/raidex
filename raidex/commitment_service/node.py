@@ -1,10 +1,12 @@
 import structlog
 from gevent.queue import PriorityQueue, Queue
+from eth_utils import to_checksum_address
 
 from raidex.raidex_node.transport.client import MessageBrokerClient
 from raidex.raidex_node.trader.client import TraderClient
 from raidex.account import Account
 from raidex.signing import Signer
+from raidex.constants import KOVAN_RTT_ADDRESS
 from raidex.commitment_service.tasks import (
     RefundTask,
     MessageSenderTask,
@@ -13,11 +15,6 @@ from raidex.commitment_service.tasks import (
     SwapExecutionTask,
     TransferReceivedTask,
 )
-
-from eth_utils import to_checksum_address
-
-
-KOVAN_RTT_ADDRESS = '0x92276aD441CA1F3d8942d614a6c3c87592dd30bb'
 
 log = structlog.get_logger('commitment_service')
 log_swaps = structlog.get_logger('commitment_service.asset_swaps')

@@ -7,7 +7,7 @@ from eth_utils import keccak, big_endian_to_int, decode_hex
 from raidex.messages import (
     SignatureMissingError,
     Signed,
-    SwapOffer,
+    OrderMessage,
     Commitment,
     CommitmentProof,
     ProvenCommitment,
@@ -24,18 +24,18 @@ UINT32_MAX_INT = 2 ** 32
 
 
 def test_offer(assets):
-    o = SwapOffer(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), timestamp.time() - 10)
-    assert isinstance(o, SwapOffer)
+    o = OrderMessage(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), timestamp.time() - 10)
+    assert isinstance(o, OrderMessage)
     serial = o.serialize(o)
     assert_serialization(o)
     assert_envelope_serialization(o)
-    assert SwapOffer.deserialize(serial) == o
+    assert OrderMessage.deserialize(serial) == o
     assert o.timed_out()
     assert not o.timed_out(at=timestamp.time() - 3600 * 1000)  # pretend we come from the past
 
 
 def test_hashable(assets):
-    o = SwapOffer(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), 10)
+    o = OrderMessage(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), 10)
     assert o.hash
 
 
@@ -71,7 +71,7 @@ def test_signing(accounts):
 
 
 def test_maker_commitments(assets, accounts):
-    offer = SwapOffer(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), 10)
+    offer = OrderMessage(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), 10)
     maker = accounts[0]
     commitment_service = accounts[1]
 
@@ -99,7 +99,7 @@ def test_maker_commitments(assets, accounts):
 
 
 def test_taker_commitments(assets, accounts):
-    offer = SwapOffer(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), 1)
+    offer = OrderMessage(assets[0], 100, assets[1], 110, big_endian_to_int(keccak(text='offer id')), 1)
     maker = accounts[0]
     commitment_service = accounts[1]
 

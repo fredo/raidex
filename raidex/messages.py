@@ -126,7 +126,7 @@ class Signed(RLPHashable):
         return obj
 
 
-class SwapOffer(RLPHashable):
+class OrderMessage(RLPHashable):
     """An `SwapOffer` is the base for a `ProvenOffer`. Its `offer_id`, `hash` and `timeout` should be sent
     as a `Commitment` to a commitment service provider.
 
@@ -148,14 +148,14 @@ class SwapOffer(RLPHashable):
         ('ask_amount', int256),
         ('bid_token', address),
         ('bid_amount', int256),
-        ('offer_id', int32),  # arbitrarily chosen by node, bestcase: randomly chosen
+        ('order_id', int32),  # arbitrarily chosen by node, bestcase: randomly chosen
         ('timeout', int256),
     ] + RLPHashable.fields
 
-    def __init__(self, ask_token, ask_amount, bid_token, bid_amount, offer_id, timeout, cmdid=None):
+    def __init__(self, ask_token, ask_amount, bid_token, bid_amount, order_id, timeout, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
 
-        super(SwapOffer, self).__init__(ask_token, ask_amount, bid_token, bid_amount, offer_id, timeout, cmdid)
+        super(OrderMessage, self).__init__(ask_token, ask_amount, bid_token, bid_amount, order_id, timeout, cmdid)
 
     def timed_out(self, at=None):
         if at is None:
@@ -177,18 +177,19 @@ class SwapOffer(RLPHashable):
             pex(h),
         )
 
+
 class Commitment(Signed):
 
     fields = [
-        ('offer_id', int32), # FIXME we should reference Swaps with the offer_hash!
-        ('offer_hash', hash32),
+        ('order_id', int32), # FIXME we should reference Swaps with the offer_hash!
+        ('order_hash', hash32),
         ('timeout', int256),
         ('amount', int256),
     ] + Signed.fields
 
-    def __init__(self, offer_id, offer_hash, timeout, amount, signature=None, cmdid=None):
+    def __init__(self, order_id, order_hash, timeout, amount, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(Commitment, self).__init__(offer_id, offer_hash, timeout, amount, signature, cmdid)
+        super(Commitment, self).__init__(order_id, order_hash, timeout, amount, signature, cmdid)
 
 
 class OfferTaken(Signed):
@@ -287,7 +288,7 @@ class ProvenOffer(Signed):
         }
     """
     fields = [
-        ('offer', SwapOffer),
+        ('offer', OrderMessage),
         ('commitment_proof', CommitmentProof),
     ] + Signed.fields
 
@@ -411,7 +412,7 @@ class SwapCompleted(SwapExecution):
 
 
 msg_types_map = dict(
-        offer=SwapOffer,
+        offer=OrderMessage,
         proven_offer=ProvenOffer,
         proven_commitment=ProvenCommitment,
         commitment=Commitment,

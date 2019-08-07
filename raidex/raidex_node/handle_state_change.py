@@ -1,7 +1,7 @@
 import structlog
 
 from raidex.raidex_node.architecture.state_change import *
-from raidex.raidex_node.order.limit_order import LimitOrder
+from raidex.raidex_node.order.limit_order import LimitOrderFactory
 from raidex.raidex_node.architecture.event_architecture import dispatch_events
 from raidex.raidex_node.transport.events import SendProvenOfferEvent
 from raidex.raidex_node.matching.match import MatchFactory
@@ -56,7 +56,7 @@ def handle_offer_timeout(data_manager: DataManager, state_change: OfferTimeoutSt
 
 
 def handle_new_limit_order(data_manager: DataManager, state_change: NewLimitOrderStateChange):
-    new_order = LimitOrder.from_dict(state_change.data)
+    new_order = LimitOrderFactory.from_dict(state_change.data)
     data_manager.process_order(new_order)
 
 

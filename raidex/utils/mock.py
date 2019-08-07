@@ -71,10 +71,10 @@ def gen_orderbook_messages(market_price=10, max_amount=1000 * ETH, num_messages=
             ask_amount = int(bid_amount / bids_price)
 
         maker = ACCOUNTS[num_messages % 2]
-        offer = messages.SwapOffer(ASSETS[i % 2], ask_amount,
-                                   ASSETS[1 - i % 2], bid_amount,
-                                   keccak('offer {}'.format(i)),  # TODO better offer_ids
-                                   int(timestamp.time() * 10000 + 1000 * random.randint(1, 10) + i))
+        offer = messages.OrderMessage(ASSETS[i % 2], ask_amount,
+                                      ASSETS[1 - i % 2], bid_amount,
+                                      keccak('offer {}'.format(i)),  # TODO better offer_ids
+                                      int(timestamp.time() * 10000 + 1000 * random.randint(1, 10) + i))
         offers.append(offer)
     return offers
 

@@ -190,11 +190,11 @@ class CommitmentServiceClientMock(object):
     def create_offer_msg(self, offer):
         # type: (OfferDeprecated) -> OfferMsg
         if offer.type == OfferType.SELL:
-            return messages.SwapOffer(self.token_pair.quote_token, offer.quote_amount, self.token_pair.base_token,
-                                      offer.base_amount, offer.offer_id, offer.timeout_date)
+            return messages.OrderMessage(self.token_pair.quote_token, offer.quote_amount, self.token_pair.base_token,
+                                         offer.base_amount, offer.offer_id, offer.timeout_date)
         else:
-            return messages.SwapOffer(self.token_pair.base_token, offer.base_amount, self.token_pair.quote_token,
-                                      offer.quote_amount, offer.offer_id, offer.timeout_date)
+            return messages.OrderMessage(self.token_pair.base_token, offer.base_amount, self.token_pair.quote_token,
+                                         offer.quote_amount, offer.offer_id, offer.timeout_date)
 
     def report_swap_executed(self, offer_id):
         # type: (int) -> None
