@@ -12,9 +12,6 @@ structlog.configure()
 #':WARNING,bots.manipulator:DEBUG'
 
 
-
-
-
 def main():
     stop_event = Event()
 
@@ -59,23 +56,6 @@ def main():
     if args.api is True:
         api = APIServer('', args.api_port, raidex_app.raidex_node)
         api.start()
-
-    bots = args.bots
-    if bots:
-        initial_price = 100.
-
-        if 'liquidity' in bots:
-            liquidity_provider = LiquidityProvider(raidex_app, initial_price)
-            liquidity_provider.start()
-        if 'random' in bots:
-            gevent.sleep(5)  # give liquidity provider head start
-            random_walker = RandomWalker(raidex_app, initial_price)
-            random_walker.start()
-        if 'maniplulator' in bots:
-            if 'random' not in bots:
-                gevent.sleep(5)  # give liquidity provider head start
-            manipulator = Manipulator(raidex_app, initial_price)
-            manipulator.start()
 
     stop_event.wait()  # runs forever
 
