@@ -2,7 +2,7 @@ from gevent.event import AsyncResult
 from raidex import messages
 from raidex.signing import Signer
 from raidex.raidex_node.offer_book import OfferDeprecated
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.utils import timestamp
 
 
@@ -152,7 +152,7 @@ class CommitmentServiceClientMock(object):
 
         commitment_proof_msg = messages.CommitmentProof(commitment_msg.signature)
         self._global_sign(commitment_proof_msg)
-        proven_offer_msg = messages.ProvenOffer(offer_msg, commitment_msg, commitment_proof_msg)
+        proven_offer_msg = messages.ProvenOrder(offer_msg, commitment_msg, commitment_proof_msg)
         self._sign(proven_offer_msg)
         result.set(proven_offer_msg)
         return result
@@ -189,7 +189,7 @@ class CommitmentServiceClientMock(object):
 
     def create_offer_msg(self, offer):
         # type: (OfferDeprecated) -> OfferMsg
-        if offer.type == OfferType.SELL:
+        if offer.type == OrderType.SELL:
             return messages.OrderMessage(self.token_pair.quote_token, offer.quote_amount, self.token_pair.base_token,
                                          offer.base_amount, offer.offer_id, offer.timeout_date)
         else:

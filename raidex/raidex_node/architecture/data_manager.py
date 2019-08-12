@@ -38,7 +38,7 @@ class DataManager:
     def timeout_offer(self, offer):
 
         offer.timeout()
-        self.timeout_handler.clean_up_timeout(offer.offer_id)
+        self.timeout_handler.clean_up_timeout(offer.order_id)
 
     def process_order(self, order: LimitOrder):
         self.orders[order.order_id] = order
@@ -50,14 +50,16 @@ class DataManager:
 
             if self.timeout_handler.create_new_timeout(take_offer):
                 taker_match = MatchFactory.taker_match(take_offer, offer_entry)
-                self.matches[take_offer.offer_id] = taker_match
-                order.add_offer(take_offer)
-                self.matching_engine.offer_book.remove_offer(take_offer.offer_id)
+                self.matches[take_offer.order_id] = taker_match
+                order.add_trade(take_offer)
+                self.matching_engine.offer_book.remove_order(take_offer.order_id)
             else:
                 raise OfferTimedOutException
 
         if amount_left > 0:
-            make_offer = self.offer_manager.create_make_offer(order, amount_left)
-            self.timeout_handler.create_new_timeout(make_offer)
-            order.add_offer(make_offer)
+            self.timeout_handler.create_new_timeout(order)
+
+            #make_offer = self.offer_manager.create_make_offer(order, amount_left)
+            #self.timeout_handler.create_new_timeout(make_offer)
+            #order.add_offer(make_offer)
 

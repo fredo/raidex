@@ -9,7 +9,7 @@ def commitment_proof(internal_offer):
 
     secret = random_secret()
 
-    return CommitmentProof(None, secret, keccak(secret), internal_offer.offer_id)
+    return CommitmentProof(None, secret, keccak(secret), internal_offer.order_id)
 
 
 def test_timeout_offer(internal_offer):

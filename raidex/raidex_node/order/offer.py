@@ -8,6 +8,7 @@ from raidex.raidex_node.architecture.event_architecture import dispatch_events
 from raidex.utils import pex
 from raidex.utils.timestamp import to_str_repr, time_plus
 from raidex.utils.random import create_random_32_bytes_id
+from raidex.raidex_node.architecture.fsm import MachineModel
 from raidex.raidex_node.commitment_service.events import CommitEvent, CommitmentProvedEvent, ReceivedInboundEvent, CancellationRequestEvent
 
 
@@ -16,13 +17,13 @@ class TraderRole(Enum):
     TAKER = 1
 
 
-class OfferType(Enum):
+class OrderType(Enum):
     BUY = 0
     SELL = 1
 
     @classmethod
     def opposite(cls, type_):
-        return OfferType((type_.value + 1) % 2)
+        return OrderType((type_.value + 1) % 2)
 
 
 class BasicOffer:
@@ -62,7 +63,7 @@ class BasicOffer:
         return True
 
 
-class Offer(BasicOffer):
+class Offer(BasicOffer, MachineModel):
 
     def __init__(self, offer_id, offer_type, base_amount, quote_amount, timeout_date, trader_role):
         super(Offer, self).__init__(offer_id, offer_type, base_amount, quote_amount, timeout_date)
@@ -87,7 +88,7 @@ class Offer(BasicOffer):
         return False
 
     def is_buy(self):
-        if self.type == OfferType.BUY:
+        if self.type == OrderType.BUY:
             return True
         return False
 
@@ -131,7 +132,7 @@ class OfferFactory:
     @staticmethod
     def create_from_basic(offer, trader_role):
 
-        offer_model = Offer(offer.offer_id,
+        offer_model = Offer(offer.order_id,
                             offer.type,
                             offer.base_amount,
                             offer.quote_amount,

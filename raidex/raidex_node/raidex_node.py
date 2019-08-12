@@ -4,7 +4,7 @@ import structlog
 
 from raidex.raidex_node.architecture.event_architecture import Processor
 from raidex.raidex_node.architecture.state_change import StateChange
-from raidex.raidex_node.offer_book import OfferBook
+from raidex.raidex_node.offer_book import OrderBook
 from raidex.raidex_node.listener_tasks import OfferBookTask
 from raidex.raidex_node.trades import TradesView
 from raidex.raidex_node.offer_grouping import group_offers, group_trades_from, make_price_bins, get_n_recent_trades
@@ -22,7 +22,7 @@ class RaidexNode(Processor):
         self.address = address
         self.message_broker = message_broker
         self.trader_client = trader_client
-        self.offer_book = OfferBook()
+        self.order_book = OrderBook()
         # don't make this accessible in the constructor args for now, set attribute instead if needed
         self.default_offer_lifetime = 30
         self._trades_view = TradesView()
@@ -33,11 +33,11 @@ class RaidexNode(Processor):
         self._max_open_orders = 0
 
         self._get_trades = self._trades_view.trades
-        self.data_manager = DataManager(self.offer_book, token_pair)
+        self.data_manager = DataManager(self.order_book, token_pair)
 
     def start(self):
         log.info('Starting raidex node')
-        OfferBookTask(self.offer_book, self.token_pair, self.message_broker).start()
+        OfferBookTask(self.order_book, self.token_pair, self.message_broker).start()
         #OfferTakenTask(self.offer_book, self._trades_view, self.message_broker).start()
         #SwapCompletedTask(self._trades_view, self.message_broker).start()
 
@@ -78,13 +78,13 @@ class RaidexNode(Processor):
         self.user_order_tasks_by_id[order_id].cancel()
 
     def print_offers(self):
-        print(self.offer_book)
+        print(self.order_book)
 
     def buys(self):
-        return self.offer_book.buys.values()
+        return self.order_book.buys.values()
 
     def sells(self):
-        return self.offer_book.sells.values()
+        return self.order_book.sells.values()
 
     def grouped_buys(self):
         return group_offers(self.buys())

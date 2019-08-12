@@ -77,7 +77,7 @@ def test_maker_commitment_task(mocker, swaps, factory, maker_commitment_msg_sign
 def test_maker_commitment_task_fail(mocker, swaps, factory, maker_commitment_msg_signed, message_broker,
                                     commitment_service_account):
     commitment_service_address = commitment_service_account.address
-    offer_id = maker_commitment_msg_signed.offer_id
+    offer_id = maker_commitment_msg_signed.order_id
 
     hand_maker_commitment_func_mock = mocker.patch.object(SwapCommitment, 'hand_maker_commitment_msg', autospect=True)
 
@@ -105,7 +105,7 @@ def test_maker_commitment_task_fail(mocker, swaps, factory, maker_commitment_msg
 def test_taker_commitment_task(mocker, swaps, factory, taker_commitment_msg_signed, commitment_service_account, message_broker,
                                ):
     commitment_service_address = commitment_service_account.address
-    offer_id = taker_commitment_msg_signed.offer_id
+    offer_id = taker_commitment_msg_signed.order_id
 
     hand_taker_commitment_func_mock = mocker.patch.object(SwapCommitment, 'hand_taker_commitment_msg', autospect=True)
 
@@ -132,7 +132,7 @@ def test_swap_execution_task(mocker, swaps, factory, swap_execution_msg, message
                              maker_account):
     commitment_service_address = commitment_service_account.address
     swap_execution_msg.sign(maker_account.privatekey)
-    offer_id = swap_execution_msg.offer_id
+    offer_id = swap_execution_msg.order_id
 
     hand_swap_execution_func_mock = mocker.patch.object(SwapCommitment, 'hand_swap_execution_msg', autospect=True)
 

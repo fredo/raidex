@@ -17,7 +17,7 @@ from eth_keys import keys
 
 
 from raidex import messages
-from raidex.raidex_node.offer_book import OfferDeprecated, OfferType
+from raidex.raidex_node.offer_book import OfferDeprecated, OrderType
 from raidex.utils import make_privkey_address, timestamp
 
 ETH = denoms.ether
@@ -114,7 +114,7 @@ def gen_offer(magic_number, market_price=10.0, max_amount=1000 * ETH, max_deviat
     operator = [-1, 1]
 
     switch = random.choice((0, 1))
-    type_ = OfferType(switch)
+    type_ = OrderType(switch)
     for _ in range(magic_number):
             drift = random.random() * max_deviation * operator[switch]
             factor = 1 + drift
@@ -123,7 +123,7 @@ def gen_offer(magic_number, market_price=10.0, max_amount=1000 * ETH, max_deviat
     base_amount = random.randint(1, max_amount)
     quote_amount = int(base_amount * float(price))
 
-    assert type_ in (OfferType.BUY, OfferType.SELL)
+    assert type_ in (OrderType.BUY, OrderType.SELL)
     offer = OfferDeprecated(type_,
                             base_amount,
                             quote_amount,
@@ -173,14 +173,14 @@ class MockExchangeTask(gevent.Greenlet):
             magic_number = random.randint(1, self.message_volume)
             # 20% of offers get taken, others should time out
             if magic_number <= int(round(self.message_volume * 0.2)):
-                type_ = random.choice([OfferType.BUY, OfferType.SELL])
+                type_ = random.choice([OrderType.BUY, OrderType.SELL])
                 offers = None
-                if type_ == OfferType.SELL:
+                if type_ == OrderType.SELL:
                     # FIXME, ugly
                     # FIXME Can be empty!!
                     offers = list(reversed(list(self.offer_book.buys.values())))
 
-                elif type_ == OfferType.BUY:
+                elif type_ == OrderType.BUY:
                     offers = list(self.offer_book.sells.values())
 
                 # threshold_index = int(self.message_volume * 0.2)
@@ -208,10 +208,10 @@ class MockExchangeTask(gevent.Greenlet):
         # since it doesn't contact the maker with a Proven Commitment and
         # doesn't broadcast a swap executed etc..
 
-        offer_taken = commitment_service_client.create_taken(offer.offer_id)
+        offer_taken = commitment_service_client.create_taken(offer.order_id)
         self.message_broker.broadcast(offer_taken)
 
         # spawn later randomly, but before timeout
-        swap_completed = commitment_service_client.create_swap_completed(offer.offer_id)
+        swap_completed = commitment_service_client.create_swap_completed(offer.order_id)
         wait = int(round(offer.timeout_date - (random.random() * (offer.timeout_date - 100))))
         gevent.spawn_later(timestamp.to_seconds(wait), self.message_broker.broadcast, swap_completed)

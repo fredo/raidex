@@ -4,7 +4,7 @@ import gevent
 
 from eth_utils import int_to_big_endian, keccak
 
-from raidex.raidex_node.offer_book import OfferDeprecated, OfferBook, OfferType, OfferView
+from raidex.raidex_node.offer_book import OfferDeprecated, OrderBook, OrderType, OrderView
 from raidex.raidex_node.listener_tasks import OfferBookTask, SwapCompletedTask, OfferTakenTask
 from raidex.utils import timestamp
 from raidex.utils import get_market_from_asset_pair
@@ -34,21 +34,21 @@ def commitment_service(market, message_broker):
 def test_offer_comparison():
     timeouts = [int(time.time() + i) for i in range(0, 4)]
     offer_ids = list(range(0, 4))
-    offer1 = OfferDeprecated(OfferType.BUY, 50, 5, timeout=timeouts[0], offer_id=offer_ids[0])
-    offer2 = OfferDeprecated(OfferType.BUY, 100, 1, timeout=timeouts[1], offer_id=offer_ids[1])
-    offer3 = OfferDeprecated(OfferType.BUY, 100, 2, timeout=timeouts[2], offer_id=offer_ids[2])
-    offer4 = OfferDeprecated(OfferType.BUY, 100, 1, timeout=timeouts[3], offer_id=offer_ids[3])
-    offers = OfferView()
+    offer1 = OfferDeprecated(OrderType.BUY, 50, 5, timeout=timeouts[0], offer_id=offer_ids[0])
+    offer2 = OfferDeprecated(OrderType.BUY, 100, 1, timeout=timeouts[1], offer_id=offer_ids[1])
+    offer3 = OfferDeprecated(OrderType.BUY, 100, 2, timeout=timeouts[2], offer_id=offer_ids[2])
+    offer4 = OfferDeprecated(OrderType.BUY, 100, 1, timeout=timeouts[3], offer_id=offer_ids[3])
+    offers = OrderView()
     for offer in [offer1, offer2, offer3, offer4]:
-        offers.add_offer(offer)
+        offers.add_order(offer)
     assert list(offers.values()) == [offer2, offer4, offer3, offer1]
 
 
 def test_offer_book_task(message_broker, commitment_service, market):
-    offer_book = OfferBook()
+    offer_book = OrderBook()
     OfferBookTask(offer_book, market, message_broker).start()
     gevent.sleep(0.001)
-    offer = OfferDeprecated(OfferType.SELL, 100, 1000, offer_id=123, timeout=timestamp.time_plus(20))
+    offer = OfferDeprecated(OrderType.SELL, 100, 1000, offer_id=123, timeout=timestamp.time_plus(20))
     proof = commitment_service.maker_commit_async(offer).get()
     message_broker.broadcast(proof)
     gevent.sleep(0.001)
@@ -56,13 +56,13 @@ def test_offer_book_task(message_broker, commitment_service, market):
 
 
 def test_taken_task(message_broker, commitment_service):
-    offer_book = OfferBook()
+    offer_book = OrderBook()
     trades = TradesView()
     OfferTakenTask(offer_book, trades, message_broker).start()
     gevent.sleep(0.001)
-    offer = OfferDeprecated(OfferType.SELL, 100, 1000, offer_id=123, timeout=timestamp.time_plus(2))
+    offer = OfferDeprecated(OrderType.SELL, 100, 1000, offer_id=123, timeout=timestamp.time_plus(2))
     # insert manually for the first time
-    offer_book.insert_offer(offer)
+    offer_book.insert_order(offer)
     assert len(offer_book.sells) == 1
     offer_taken = commitment_service.create_taken(offer.offer_id)
     # send offer_taken
@@ -76,7 +76,7 @@ def test_swap_completed_task(message_broker, commitment_service):
     trades = TradesView()
     SwapCompletedTask(trades, message_broker).start()
     gevent.sleep(0.001)
-    offer = OfferDeprecated(OfferType.SELL, 100, 1000, offer_id=123, timeout=timestamp.time_plus(2))
+    offer = OfferDeprecated(OrderType.SELL, 100, 1000, offer_id=123, timeout=timestamp.time_plus(2))
     # set it to pending, as it was taken
     trades.add_pending(offer)
     assert len(trades.pending_offer_by_id) == 1

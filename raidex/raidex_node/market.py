@@ -1,5 +1,5 @@
 from eth_utils import is_binary_address, to_checksum_address
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.utils import pex
 
 
@@ -16,9 +16,9 @@ class TokenPair(object):
 
     def get_offer_type(self, ask_token, bid_token):
         if ask_token == self.base_token and bid_token == self.quote_token:
-            return OfferType.BUY
+            return OrderType.BUY
         elif ask_token == self.quote_token and bid_token == self.base_token:
-            return OfferType.SELL
+            return OrderType.SELL
         else:
             return None
 

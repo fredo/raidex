@@ -6,7 +6,7 @@ from gevent.queue import Queue
 import structlog
 from eth_utils import int_to_big_endian
 
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.raidex_node.listener_tasks import ListenerTask
 from raidex.utils import timestamp, pex
 from raidex.utils.address import binary_address
@@ -172,7 +172,7 @@ class TraderClientMock(object):
                                                                target_address, identifier)
         successful = trade_result_async.get()
         if successful:
-            self.execute_exchange(OfferType.opposite(type_), base_amount, quote_amount)
+            self.execute_exchange(OrderType.opposite(type_), base_amount, quote_amount)
         return successful
 
     @make_async
@@ -187,7 +187,7 @@ class TraderClientMock(object):
         return successful
 
     def execute_exchange(self, type_, base_amount, quote_amount):
-        if type_ == OfferType.SELL:
+        if type_ == OrderType.SELL:
             self.base_amount -= base_amount
             self.quote_amount += quote_amount
         else:

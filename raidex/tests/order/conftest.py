@@ -3,7 +3,7 @@ import structlog
 
 from raidex.utils.random import create_random_32_bytes_id
 from raidex.utils.timestamp import time_plus
-from raidex.raidex_node.order.offer import OfferType, BasicOffer, OfferFactory, TraderRole
+from raidex.raidex_node.order.offer import OrderType, BasicOffer, OfferFactory, TraderRole
 
 
 @pytest.fixture(autouse=True)
@@ -17,7 +17,7 @@ def random_id():
 
 @pytest.fixture
 def offer_type():
-    return OfferType.BUY
+    return OrderType.BUY
 
 
 @pytest.fixture

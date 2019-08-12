@@ -19,7 +19,7 @@ class Commitment(object):
 
     @classmethod
     def from_message(cls, message):
-        offer_id = message.offer_id
+        offer_id = message.order_id
         timeout = message.timeout
         amount = message.amount
         signature = message.signature
@@ -47,7 +47,7 @@ class SwapExecution(object):
 
     @classmethod
     def from_message(cls, message):
-        offer_id = message.offer_id
+        offer_id = message.order_id
         timestamp = message.timestamp
         sender = message.sender
         return cls(offer_id, timestamp, sender)

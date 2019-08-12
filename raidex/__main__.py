@@ -1,11 +1,9 @@
 import argparse
-import gevent
 from gevent.event import Event
 import structlog
 
 from raidex.raidex_node.api.app import APIServer
 from raidex.app import App
-from raidex.raidex_node.bots import LiquidityProvider, RandomWalker, Manipulator
 from raidex.constants import KOVAN_WETH_ADDRESS, CS_ADDRESS, KOVAN_RTT_ADDRESS
 
 structlog.configure()

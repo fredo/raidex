@@ -104,8 +104,8 @@ class TransferReceivedTask(ListenerTask):
         if not isinstance(transfer_receipt, TransferReceipt):
             raise ValueError()
 
-        offer_id = transfer_receipt.identifier
-        swap = self.swaps.get(offer_id)
+        order_id = transfer_receipt.identifier
+        swap = self.swaps.get(order_id)
 
         log_trader.debug(str(transfer_receipt))
 
@@ -147,20 +147,20 @@ class CommitmentTask(ListenerTask):
 
     def process(self, data):
         commitment_msg = data
-        if not hasattr(commitment_msg, 'offer_id'):
+        if not hasattr(commitment_msg, 'order_id'):
             raise ValueError()
         if not isinstance(commitment_msg, messages.Commitment):
             raise ValueError()
 
-        offer_id = commitment_msg.offer_id
-        if offer_id in self.swaps:
-            swap = self.swaps.get(offer_id)
+        order_id = commitment_msg.order_id
+        if order_id in self.swaps:
+            swap = self.swaps.get(order_id)
             swap.hand_taker_commitment_msg(commitment_msg)
 
         else:
-            swap = self.factory.make_swap(offer_id)
+            swap = self.factory.make_swap(order_id)
             log_messaging.debug(str(commitment_msg))
-            log_messaging.debug("Offer ID: {}".format(offer_id))
+            log_messaging.debug("Offer ID: {}".format(order_id))
             if swap is not None:
                 swap.hand_maker_commitment_msg(commitment_msg)
 

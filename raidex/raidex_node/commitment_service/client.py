@@ -11,6 +11,7 @@ from raidex.raidex_node.trader.listener.events import ExpectInboundEvent
 from raidex.utils.address import binary_address
 from raidex.raidex_node.order.offer import Offer
 from raidex.constants import KOVAN_RTT_ADDRESS
+from raidex.raidex_node.order.limit_order import LimitOrder
 
 
 log = structlog.get_logger('node.commitment_service')
@@ -42,10 +43,10 @@ class CommitmentServiceClient(Processor):
 
         CommitmentProofTask(CommitmentProofListener(self.message_broker, topic=self.node_address)).start()
 
-    def commit(self, offer: Offer):
+    def commit(self, order: LimitOrder):
 
-        commit_msg_event = CommitmentEvent(self.commitment_service_address, offer, self.commitment_amount, self.market)
-        transfer_event = self._transfer_commitment_event(offer.offer_id, self.commitment_amount)
+        commit_msg_event = CommitmentEvent(self.commitment_service_address, order, self.commitment_amount, self.market)
+        transfer_event = self._transfer_commitment_event(order.order_id, self.commitment_amount)
         dispatch_events([commit_msg_event, transfer_event])
 
     def received_inbound_from_swap(self, offer_id):

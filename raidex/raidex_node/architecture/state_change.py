@@ -1,4 +1,4 @@
-from raidex.raidex_node.offer_book import OfferBookEntry
+from raidex.raidex_node.offer_book import OrderBookEntry
 
 
 class EventIterator:
@@ -35,14 +35,14 @@ class CancelLimitOrderStateChange(StateChange):
 
 class OfferStateChange(StateChange):
 
-    def __init__(self, offer_id):
-        self.offer_id = offer_id
+    def __init__(self, order_id):
+        self.order_id = order_id
 
 
-class OfferTimeoutStateChange(OfferStateChange):
+class OrderTimeoutStateChange(StateChange):
 
-    def __init__(self, offer_id, timeout_date):
-        super(OfferTimeoutStateChange, self).__init__(offer_id)
+    def __init__(self, order_id, timeout_date):
+        self.order_id = order_id
         self.timeout_date = timeout_date
 
 
@@ -54,7 +54,7 @@ class CommitmentProofStateChange(OfferStateChange):
     ]
 
     def __init__(self, commitment_signature, commitment_proof):
-        super(CommitmentProofStateChange, self).__init__(commitment_proof.offer_id)
+        super(CommitmentProofStateChange, self).__init__(commitment_proof.order_id)
         self.commitment_signature = commitment_signature
         self.commitment_proof = commitment_proof
 
@@ -62,7 +62,7 @@ class CommitmentProofStateChange(OfferStateChange):
 class CancellationProofStateChange(OfferStateChange):
 
     def __init__(self, cancellation_proof):
-        super(CancellationProofStateChange, self).__init__(cancellation_proof.offer_id)
+        super(CancellationProofStateChange, self).__init__(cancellation_proof.order_id)
         self.cancellation_proof = cancellation_proof
 
 
@@ -76,8 +76,8 @@ class TakerCallStateChange(StateChange):
 
 class OfferPublishedStateChange(StateChange):
 
-    def __init__(self, offer_entry: OfferBookEntry):
-        self.offer_entry = offer_entry
+    def __init__(self, order_entry: OrderBookEntry):
+        self.order_entry = order_entry
 
 
 class PaymentFailedStateChange(StateChange):

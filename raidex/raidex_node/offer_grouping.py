@@ -132,7 +132,7 @@ def group_trades(iterable, chunk_size=None, price_group_precision=None,
                                                                  trade.offer.type))
 
         if grouped_offer is None:
-            grouped_offer = GroupedTrade(quantized_price, trade_bucket_time_int, trade.offer.offer_id, trade.offer.type)
+            grouped_offer = GroupedTrade(quantized_price, trade_bucket_time_int, trade.offer.order_id, trade.offer.type)
             grouped_offer.add(trade.offer.base_amount)
 
             quantized_offers_by_price_time_type[(float(quantized_price), trade_bucket_time_int, trade.offer.type)] = grouped_offer

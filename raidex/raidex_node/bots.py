@@ -2,7 +2,7 @@ import random
 from itertools import chain, repeat
 from gevent import Greenlet, sleep
 import structlog
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 
 random.seed(0)
 
@@ -28,7 +28,7 @@ class RandomWalker(Greenlet):
     def place_order(self, order_type):
         market_price = self.raidex_node.market_price() or self.initial_price
         offset = market_price * self.urgency
-        price = market_price + offset if order_type is OfferType.BUY else market_price - offset
+        price = market_price + offset if order_type is OrderType.BUY else market_price - offset
         amount = self.average_amount
         self.log.info('placing order', type=order_type.name, amount=amount * 1e-18,
                       market_price=market_price, price=price)
@@ -36,7 +36,7 @@ class RandomWalker(Greenlet):
 
     def _run(self):
         while True:
-            type_ = random.choice([OfferType.BUY, OfferType.SELL])
+            type_ = random.choice([OrderType.BUY, OrderType.SELL])
             self.place_order(type_)
             sleep(1. / self.average_frequency)
 
@@ -76,10 +76,10 @@ class Manipulator(Greenlet):
         market_price = self.raidex_node.market_price() or self.initial_price
         # buy if price should increase, otherwise sell
         if self.goal[1] >= 0:
-            order_type = OfferType.BUY
+            order_type = OrderType.BUY
             order_price = market_price * (1 + self.overpay)
         else:
-            order_type = OfferType.SELL
+            order_type = OrderType.SELL
             order_price = market_price * (1 - self.overpay)
         self.raidex_node.limit_order(order_type, self.order_amount_average, order_price)
         self.log.debug('placed order', price=order_price, amount=self.order_amount_average)
@@ -148,7 +148,7 @@ class LiquidityProvider(Greenlet):
         high = max(market_price, check_point)
         s = 0
         for _, offer_id in offers:
-            offer = self.raidex_node.offer_book.get_offer_by_id(offer_id)
+            offer = self.raidex_node.offer_book.get_order_by_id(offer_id)
             if low <= offer.price <= high:
                 s += offer.amount
             else:
@@ -174,24 +174,24 @@ class LiquidityProvider(Greenlet):
             check_points_sell, check_points_buy = self.calc_checkpoints(price)
             check_point_diff = check_points_sell[1] - check_points_sell[0]
             orders = []
-            additional_offers = {OfferType.BUY: 0, OfferType.SELL: 0}
-            for type_, cp in chain(zip(repeat(OfferType.BUY), check_points_buy),
-                                   zip(repeat(OfferType.SELL), check_points_sell)):
+            additional_offers = {OrderType.BUY: 0, OrderType.SELL: 0}
+            for type_, cp in chain(zip(repeat(OrderType.BUY), check_points_buy),
+                                   zip(repeat(OrderType.SELL), check_points_sell)):
                 offered = self.integrate_offers_until(price, cp) + additional_offers[type_]
                 target = self.calc_target_amount(price, cp)
                 if offered < target:
                     amount = int(round(target * (1 + self.overshoot) - offered))
-                    order_price = cp + check_point_diff / 2 * (1 if type_ is OfferType.BUY else -1)
+                    order_price = cp + check_point_diff / 2 * (1 if type_ is OrderType.BUY else -1)
                     assert abs(price - order_price) < abs(price - cp)
                     assert 1 - self.range / 2 <= order_price / price <= 1 + self.range / 2
                     orders.append((type_, amount, order_price))
                     additional_offers[type_] += amount
-            buys = len([o for o in orders if o[0] is OfferType.BUY])
+            buys = len([o for o in orders if o[0] is OrderType.BUY])
             sells = len(orders) - buys
             self.log.info('replenishing offers', buys=buys, sells=sells, market_price=price)
             for type_, amount, order_price in orders:
-                assert ((type_ is OfferType.BUY and order_price < price) or
-                        (type_ is OfferType.SELL and order_price > price))
+                assert ((type_ is OrderType.BUY and order_price < price) or
+                        (type_ is OrderType.SELL and order_price > price))
                 if amount > 0:
                     self.raidex_node.limit_order(type_, amount, order_price)
             sleep(5)

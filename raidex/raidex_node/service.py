@@ -167,7 +167,7 @@ class BroadcastMessageHandler(object):
         try:
             offer_book = self.raidex.get_offerbook(market)
             offer = Offer.from_message(message)
-            offer_book.insert_offer(offer)
+            offer_book.insert_order(offer)
         except UntradableAssetPair:
             # log.INFO('the client is registered to an unaccessible market')
             pass

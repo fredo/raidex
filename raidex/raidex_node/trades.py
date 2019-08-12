@@ -26,7 +26,7 @@ class TradesView(object):
         self._trades = SortedDict()
 
     def add_pending(self, offer):
-        self.pending_offer_by_id[offer.offer_id] = offer
+        self.pending_offer_by_id[offer.order_id] = offer
 
     def report_completed(self, offer_id, completed_timestamp):
         offer = self.pending_offer_by_id.get(offer_id)

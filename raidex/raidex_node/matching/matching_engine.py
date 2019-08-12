@@ -1,4 +1,4 @@
-from raidex.raidex_node.offer_book import OfferBook
+from raidex.raidex_node.offer_book import OrderBook
 from raidex.raidex_node.order.limit_order import LimitOrder
 
 
@@ -9,7 +9,7 @@ class MatchingEngine:
         'match'
     ]
 
-    def __init__(self, offer_book: OfferBook, match):
+    def __init__(self, offer_book: OrderBook, match):
         self.offer_book = offer_book
         self.match = match
 

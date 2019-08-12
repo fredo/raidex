@@ -1,15 +1,17 @@
 from gevent import spawn_later, kill
 
-from raidex.raidex_node.architecture.state_change import OfferTimeoutStateChange
+from raidex.raidex_node.architecture.state_change import OrderTimeoutStateChange
 from raidex.exceptions import AlreadyTimedOutException
-from raidex.utils.timestamp import seconds_to_timeout
 from raidex.raidex_node.architecture.event_architecture import dispatch_state_changes
+from raidex.utils.timestamp import time_plus, seconds_to_timeout, to_seconds
 
 
-def future_timeout(offer_id, timeout, threshold=0):
+def future_timeout(order, threshold=0):
 
-    lifetime = seconds_to_timeout(timeout) - threshold
-    return spawn_later(lifetime, dispatch_state_changes, OfferTimeoutStateChange(offer_id, timeout))
+    spawn_time = seconds_to_timeout(order.timeout_date)-threshold
+    timeout_state_change = OrderTimeoutStateChange(order.order_id, order.timeout_date)
+    print(f'SPAWN TIME OF {order.order_id} in {spawn_time} seconds, seconds to timeout: {seconds_to_timeout(order.timeout_date)-threshold}')
+    return spawn_later(spawn_time, dispatch_state_changes, timeout_state_change)
 
 
 def kill_greenlet(greenlet):
@@ -21,31 +23,31 @@ class TimeoutHandler:
     def __init__(self):
         self.timeout_greenlets = dict()
 
-    def create_new_timeout(self, offer, threshold=0):
+    def create_new_timeout(self, order, threshold=0):
 
-        offer_id = offer.offer_id
+        order_id = order.order_id
 
-        if self._has_greenlet(offer_id) and not self._is_still_alive(offer_id):
+        if self._has_greenlet(order_id) and not self._is_still_alive(order_id):
             raise AlreadyTimedOutException()
 
-        self.clean_up_timeout(offer_id)
-        timeout_greenlet = future_timeout(offer_id, offer.timeout_date, threshold)
-        self.timeout_greenlets[offer_id] = timeout_greenlet
+        self.clean_up_timeout(order_id)
+        timeout_greenlet = future_timeout(order, threshold)
+        self.timeout_greenlets[order_id] = timeout_greenlet
         return True
 
-    def _has_greenlet(self, offer_id):
-        if offer_id in self.timeout_greenlets:
+    def _has_greenlet(self, order_id):
+        if order_id in self.timeout_greenlets:
             return True
         return False
 
-    def _is_still_alive(self, offer_id):
+    def _is_still_alive(self, order_id):
 
-        if offer_id in self.timeout_greenlets and not self.timeout_greenlets[offer_id].dead:
+        if order_id in self.timeout_greenlets and not self.timeout_greenlets[order_id].dead:
             return True
         return False
 
-    def clean_up_timeout(self, offer_id):
+    def clean_up_timeout(self, order_id):
 
-        if offer_id in self.timeout_greenlets:
-            kill_greenlet(self.timeout_greenlets[offer_id])
-            del self.timeout_greenlets[offer_id]
+        if order_id in self.timeout_greenlets:
+            kill_greenlet(self.timeout_greenlets[order_id])
+            del self.timeout_greenlets[order_id]

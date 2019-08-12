@@ -1,8 +1,9 @@
 from contextlib import contextmanager
 from raidex.message_broker.message_broker import MessageBroker
 from raidex import messages
-from raidex.raidex_node.offer_book import OfferBookEntry
-from raidex.raidex_node.order.offer import OfferType, BasicOffer
+from raidex.raidex_node.offer_book import OrderBookEntry
+from raidex.raidex_node.order.offer import OrderType, BasicOffer
+from raidex.raidex_node.order.limit_order import LimitOrder, LimitOrderFactory
 from raidex.raidex_node.trades import SwapCompleted
 
 
@@ -55,13 +56,13 @@ class MessageListener(object):
 class TakerListener(MessageListener):
     """Listens for the Taker of the offer"""
 
-    def __init__(self, offer, message_broker):
-        self.offer = offer
+    def __init__(self, order, message_broker):
+        self.order = order
         MessageListener.__init__(self, message_broker, message_broker.address)
 
     def _transform(self, message):
         if isinstance(message,
-                      messages.ProvenOffer) and message.offer.offer_id == self.offer.offer_id:  # TODO check more
+                      messages.ProvenOrder) and message.order.order_id == self.order.order_id:  # TODO check more
             return message
         else:
             return None
@@ -89,31 +90,27 @@ class OfferListener(MessageListener):
         MessageListener.__init__(self, message_broker, topic)
 
     def _transform(self, message):
-        if not isinstance(message, messages.ProvenOffer):
+        if not isinstance(message, messages.ProvenOrder):
             return None
-        offer_msg = message.offer
+        order_msg = message.order
 
-        ask_token = offer_msg.ask_token
-        bid_token = offer_msg.bid_token
+        ask_token = order_msg.ask_token
+        bid_token = order_msg.bid_token
 
         type_ = self.market.get_offer_type(ask_token, bid_token)
 
-        if type_ is OfferType.BUY:
-            base_amount, quote_amount = offer_msg.ask_amount, offer_msg.bid_amount
-        elif type_ is OfferType.SELL:
-            base_amount, quote_amount = offer_msg.bid_amount, offer_msg.ask_amount
+        if type_ is OrderType.BUY:
+            base_amount, quote_amount = order_msg.ask_amount, order_msg.bid_amount
+        elif type_ is OrderType.SELL:
+            base_amount, quote_amount = order_msg.bid_amount, order_msg.ask_amount
         else:
             raise AssertionError("unknown market pair")
 
-        offer = BasicOffer(offer_id=offer_msg.offer_id,
-                           offer_type=type_,
-                           base_amount=base_amount,
-                           quote_amount=quote_amount,
-                           timeout_date=offer_msg.timeout)
+        order = LimitOrderFactory.from_message(order_msg, self.market)
 
         commitment_proof = message.commitment_proof
         initiator = message.sender
-        return OfferBookEntry(offer, initiator, commitment_proof)
+        return OrderBookEntry(order, initiator, commitment_proof)
 
 
 class OfferTakenListener(MessageListener):

@@ -2,7 +2,7 @@ import gevent.hub
 import pytest
 
 from eth_utils import keccak
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.trader_mock.trader import Trader, TraderClientMock, TransferReceivedListener
 
 
@@ -23,9 +23,9 @@ def trader_client2(accounts, trader):
 
 
 def test_atomic_exchange(trader_client1, trader_client2):
-    result1 = trader_client1.expect_exchange_async(OfferType.SELL, 100, 10, trader_client2.address, 1)
+    result1 = trader_client1.expect_exchange_async(OrderType.SELL, 100, 10, trader_client2.address, 1)
     gevent.sleep(0.001)  # give chance to execute async function
-    result2 = trader_client2.exchange_async(OfferType.SELL, 100, 10, trader_client1.address, 1)
+    result2 = trader_client2.exchange_async(OrderType.SELL, 100, 10, trader_client1.address, 1)
     gevent.sleep(0.001)  # give chance to execute async function
 
     assert result1.get()
@@ -39,8 +39,8 @@ def test_atomic_exchange(trader_client1, trader_client2):
 
 def test_false_price_atomic_exchange(trader_client1, trader_client2):
     with pytest.raises(gevent.hub.LoopExit, message="Should block forever"):
-        result1 = trader_client1.expect_exchange_async(OfferType.SELL, 100, 10, trader_client2.address, 1)
-        result2 = trader_client2.exchange_async(OfferType.SELL, 100, 11, trader_client1.address, 1)
+        result1 = trader_client1.expect_exchange_async(OrderType.SELL, 100, 10, trader_client2.address, 1)
+        result2 = trader_client2.exchange_async(OrderType.SELL, 100, 11, trader_client1.address, 1)
 
         result1.wait()
         result2.wait()
@@ -50,8 +50,8 @@ def test_false_price_atomic_exchange(trader_client1, trader_client2):
 
 def test_false_type_atomic_exchange(trader_client1, trader_client2):
     with pytest.raises(gevent.hub.LoopExit, message="Should block forever"):
-        result1 = trader_client1.expect_exchange_async(OfferType.SELL, 100, 10, trader_client2.address, 1)
-        result2 = trader_client2.exchange_async(OfferType.BUY, 100, 10, trader_client1.address, 1)
+        result1 = trader_client1.expect_exchange_async(OrderType.SELL, 100, 10, trader_client2.address, 1)
+        result2 = trader_client2.exchange_async(OrderType.BUY, 100, 10, trader_client1.address, 1)
 
         result1.wait()
         result2.wait()

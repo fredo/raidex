@@ -15,28 +15,28 @@ def test_create_new_timeout(timeout_handler, basic_offer):
     success = timeout_handler.create_new_timeout(basic_offer)
 
     assert success
-    assert timeout_handler._has_greenlet(basic_offer.offer_id)
-    assert not timeout_handler.timeout_greenlets[basic_offer.offer_id].dead
-    assert not timeout_handler.timeout_greenlets[basic_offer.offer_id].ready()
+    assert timeout_handler._has_greenlet(basic_offer.order_id)
+    assert not timeout_handler.timeout_greenlets[basic_offer.order_id].dead
+    assert not timeout_handler.timeout_greenlets[basic_offer.order_id].ready()
 
 
 def test_create_new_timeout_of_existing(timeout_handler, basic_offer):
 
     success = timeout_handler.create_new_timeout(basic_offer, 10)
     assert success
-    old_timeout_greenlet = timeout_handler.timeout_greenlets[basic_offer.offer_id]
+    old_timeout_greenlet = timeout_handler.timeout_greenlets[basic_offer.order_id]
 
     success = timeout_handler.create_new_timeout(basic_offer)
     assert success
 
-    assert not timeout_handler.timeout_greenlets[basic_offer.offer_id].dead
+    assert not timeout_handler.timeout_greenlets[basic_offer.order_id].dead
     assert old_timeout_greenlet.dead
 
 
 def test_create_new_timeout_of_timeouted_offer(timeout_handler, basic_offer):
     success = timeout_handler.create_new_timeout(basic_offer, seconds_to_timeout(basic_offer.timeout_date))
     assert success
-    timeout_greenlet = timeout_handler.timeout_greenlets[basic_offer.offer_id]
+    timeout_greenlet = timeout_handler.timeout_greenlets[basic_offer.order_id]
     gevent.wait([timeout_greenlet])
     assert timeout_greenlet.dead
 
@@ -45,7 +45,7 @@ def test_create_new_timeout_of_timeouted_offer(timeout_handler, basic_offer):
 
 
 def test_clean_up_timeout(timeout_handler, basic_offer):
-    offer_id = basic_offer.offer_id
+    offer_id = basic_offer.order_id
 
     timeout_handler.create_new_timeout(basic_offer)
     timeout_greenlet = timeout_handler.timeout_greenlets[offer_id]

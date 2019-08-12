@@ -11,7 +11,7 @@ from raidex.messages import (
     Commitment,
     CommitmentProof,
     ProvenCommitment,
-    ProvenOffer,
+    ProvenOrder,
     Envelope,
     SwapCompleted,
     SwapExecution,
@@ -89,7 +89,7 @@ def test_maker_commitments(assets, accounts):
     assert_serialization(commitment_proof_msg)
     assert_envelope_serialization(commitment_proof_msg)
 
-    proven_offer_msg = ProvenOffer(offer, commitment_proof_msg)
+    proven_offer_msg = ProvenOrder(offer, commitment_proof_msg)
     proven_offer_msg.sign(maker.privatekey)
     assert_serialization(proven_offer_msg)
     assert_envelope_serialization(proven_offer_msg)

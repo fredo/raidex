@@ -5,7 +5,7 @@ from sortedcontainers import SortedDict
 import structlog
 from raidex.utils import pex
 from raidex.utils.timestamp import to_str_repr
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 
 from eth_utils import int_to_big_endian
 
@@ -39,7 +39,7 @@ class OfferDeprecated(object):
 
     def __init__(self, type_, base_amount, quote_amount, offer_id, timeout_date,
                  maker_address=None, taker_address=None, commitment_amount=1):
-        assert isinstance(type_, OfferType)
+        assert isinstance(type_, OrderType)
         assert isinstance(base_amount, int)
         assert isinstance(quote_amount, int)
         assert isinstance(offer_id, int)
@@ -73,35 +73,35 @@ class OfferDeprecated(object):
             to_str_repr(self.timeout_date))
 
 
-class OfferBookEntry:
+class OrderBookEntry:
 
-    def __init__(self, offer, initiator, commitment_proof):
-        self.offer = offer
+    def __init__(self, order, initiator, commitment_proof):
+        self.order = order
         self.initiator = initiator
         self.commitment_proof = commitment_proof
 
     @property
-    def offer_id(self):
-        return self.offer.offer_id
+    def order_id(self):
+        return self.order.order_id
 
     @property
     def base_amount(self):
-        return self.offer.base_amount
+        return self.order.base_amount
 
     @property
     def quote_amount(self):
-        return self.offer.quote_amount
+        return self.order.quote_amount
 
     @property
     def price(self):
-        return self.offer.price
+        return self.order.price
 
     @property
     def timeout_date(self):
-        return self.offer.timeout_date
+        return self.order.timeout_date
 
 
-class OfferView(object):
+class OrderView(object):
     """
     Holds a collection of Offers in an RBTree for faster search.
     One OfferView instance holds either BUYs or SELLs
@@ -109,100 +109,100 @@ class OfferView(object):
     """
 
     def __init__(self):
-        self.offer_entries = SortedDict()
-        self.offer_entries_by_id = dict()
+        self.order_entries = SortedDict()
+        self.order_entries_by_id = dict()
 
-    def add_offer(self, entry):
-        assert isinstance(entry, OfferBookEntry)
+    def add_order(self, entry):
+        assert isinstance(entry, OrderBookEntry)
 
-        offer_id = entry.offer_id
-        offer_price = entry.price
+        order_id = entry.order_id
+        order_price = entry.price
 
         # inserts in the SortedDict
-        self.offer_entries[(offer_price, offer_id)] = entry
+        self.order_entries[(order_price, order_id)] = entry
 
         # inserts in the dict for retrieval by offer_id
-        self.offer_entries_by_id[offer_id] = entry
+        self.order_entries_by_id[order_id] = entry
 
-        return offer_id
+        return order_id
 
-    def remove_offer(self, offer_id):
-        if offer_id in self.offer_entries_by_id:
-            entry = self.offer_entries_by_id[offer_id]
+    def remove_order(self, offer_id):
+        if offer_id in self.order_entries_by_id:
+            entry = self.order_entries_by_id[offer_id]
 
             # remove from the SortedDict
-            del self.offer_entries[(entry.price, entry.offer_id)]
+            del self.order_entries[(entry.price, entry.order_id)]
 
             # remove from the dict
-            del self.offer_entries_by_id[offer_id]
+            del self.order_entries_by_id[offer_id]
 
-    def get_offer_by_id(self, offer_id):
-        return self.offer_entries_by_id.get(offer_id)
+    def get_order_by_id(self, order_id):
+        return self.order_entries_by_id.get(order_id)
 
-    def get_offers_by_price(self, price):
+    def get_orders_by_price(self, price):
 
-        matched_offers = list()
+        matched_orders = list()
 
-        for offer in self.offer_entries.values():
-            if offer.price == price:
-                matched_offers.append(offer)
-            if offer.price > price:
+        for order in self.order_entries.values():
+            if order.price == price:
+                matched_orders.append(order)
+            if order.price > price:
                 break
 
-        return matched_offers
+        return matched_orders
 
     def __len__(self):
-        return len(self.offer_entries)
+        return len(self.order_entries)
 
     def __iter__(self):
-        return iter(self.offer_entries)
+        return iter(self.order_entries)
 
     def values(self):
         # returns list of all offers, sorted by (price, offer_id)
-        return self.offer_entries.values()
+        return self.order_entries.values()
 
 
-class OfferBook(object):
+class OrderBook(object):
 
     def __init__(self):
-        self.buys = OfferView()
-        self.sells = OfferView()
+        self.buys = OrderView()
+        self.sells = OrderView()
         self.tasks = dict()
 
-    def insert_offer(self, offer_entry):
-        offer = offer_entry.offer
-        assert isinstance(offer.type, OfferType)
-        if offer.type is OfferType.BUY:
-            self.buys.add_offer(offer_entry)
-        elif offer.type is OfferType.SELL:
-            self.sells.add_offer(offer_entry)
+    def insert_order(self, order_entry):
+        order = order_entry.order
+        assert isinstance(order.order_type, OrderType)
+        if order.order_type is OrderType.BUY:
+            self.buys.add_order(order_entry)
+        elif order.order_type is OrderType.SELL:
+            self.sells.add_order(order_entry)
         else:
             raise Exception('unsupported offer-type')
 
-        return offer_entry.offer_id
+        return order_entry.order_id
 
-    def get_offer_by_id(self, offer_id):
-        offer = self.buys.get_offer_by_id(offer_id)
-        if offer is None:
-            offer = self.sells.get_offer_by_id(offer_id)
-        return offer
+    def get_order_by_id(self, order_id):
+        order = self.buys.get_order_by_id(order_id)
+        if order is None:
+            order = self.sells.get_order_by_id(order_id)
+        return order
 
-    def contains(self, offer_id):
-        return offer_id in self.buys.offer_entries_by_id or offer_id in self.sells.offer_entries_by_id
+    def contains(self, order_id):
+        return order_id in self.buys.order_entries_by_id or order_id in self.sells.order_entries_by_id
 
-    def remove_offer(self, offer_id):
-        if offer_id in self.buys.offer_entries_by_id:
-            offer_view = self.buys
-        elif offer_id in self.sells.offer_entries_by_id:
-            offer_view = self.sells
+    def remove_order(self, order_id):
+        if order_id in self.buys.order_entries_by_id:
+            order_view = self.buys
+        elif order_id in self.sells.order_entries_by_id:
+            order_view = self.sells
         else:
             raise Exception('offer_id not found')
 
-        offer_view.remove_offer(offer_id)
+        order_view.remove_order(order_id)
 
-    def get_offers_by_price(self, price, offer_type):
-        offer_list = self.buys if offer_type == OfferType.SELL else self.sells
-        return offer_list.get_offers_by_price(price)
+    def get_orders_by_price(self, price, order_type):
+        order_list = self.buys if order_type == OrderType.SELL else self.sells
+        return order_list.get_orders_by_price(price)
 
     def __repr__(self):
-        return "OfferBook<buys={} sells={}>".format(len(self.buys), len(self.sells))
+        return "OrderBook<buys={} sells={}>".format(len(self.buys), len(self.sells))

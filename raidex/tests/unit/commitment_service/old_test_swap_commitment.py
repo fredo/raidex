@@ -102,7 +102,7 @@ def swap_processed(swap_failed):
 def maker_transfer_receipt(maker_account, maker_commitment_msg_signed):
     amount = maker_commitment_msg_signed.amount
     received_timestamp = timestamp.time()
-    identifier = maker_commitment_msg_signed.offer_id
+    identifier = maker_commitment_msg_signed.order_id
     return TransferReceipt(maker_account.address, identifier, amount, received_timestamp)
 
 
@@ -110,7 +110,7 @@ def maker_transfer_receipt(maker_account, maker_commitment_msg_signed):
 def taker_transfer_receipt(taker_account, maker_commitment_msg_signed):
     amount = maker_commitment_msg_signed.amount
     received_timestamp = timestamp.time()
-    identifier = maker_commitment_msg_signed.offer_id
+    identifier = maker_commitment_msg_signed.order_id
     return TransferReceipt(taker_account.address, identifier, amount, received_timestamp)
 
 
@@ -119,7 +119,7 @@ def other_transfer_receipt(other_account, maker_commitment_msg_signed):
     amount = maker_commitment_msg_signed.amount
     # FIXME checkme
     received_timestamp = timestamp.time() + 1
-    identifier = maker_commitment_msg_signed.offer_id
+    identifier = maker_commitment_msg_signed.order_id
     return TransferReceipt(other_account.address, identifier, amount, received_timestamp)
 
 
@@ -180,7 +180,7 @@ def test_commitment_factory(swaps, factory):
 
 
 def test_auto_spawn_timeout(mocker, factory, maker_commitment_msg_signed):
-    swap_auto_timeout = factory.make_swap(maker_commitment_msg_signed.offer_id)
+    swap_auto_timeout = factory.make_swap(maker_commitment_msg_signed.order_id)
 
     trigger_timeout_mock = mocker.patch.object(SwapCommitment, 'trigger_timeout', autospect=True)
 

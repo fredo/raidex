@@ -13,13 +13,13 @@ class SwapFactory(object):
         self.refund_queue = refund_queue
         self.message_queue = message_queue
 
-    def make_swap(self, offer_id):
+    def make_swap(self, order_id):
         swap = None
-        if not self.id_collides(offer_id):
-            swap = SwapCommitment(offer_id, send_func=self._queue_send, refund_func=self._queue_refund,
-                                  cleanup_func=lambda id_=offer_id: self.cleanup_swap(id_))
+        if not self.id_collides(order_id):
+            swap = SwapCommitment(order_id, send_func=self._queue_send, refund_func=self._queue_refund,
+                                  cleanup_func=lambda id_=order_id: self.cleanup_swap(id_))
 
-            self.swaps[offer_id] = swap
+            self.swaps[order_id] = swap
 
         return swap
 
@@ -39,12 +39,12 @@ class SwapFactory(object):
 
 class SwapCommitment(object):
 
-    def __init__(self, offer_id, send_func, refund_func, cleanup_func=None, auto_spawn_timeout=True):
+    def __init__(self, order_id, send_func, refund_func, cleanup_func=None, auto_spawn_timeout=True):
         self._send_func = send_func
         self._refund_func = refund_func
         self._cleanup_func = cleanup_func
 
-        self.offer_id = offer_id
+        self.order_id = order_id
         self.maker_commitment_msg = None
         self.taker_commitment_msg = None
         self.maker_commitment_proof = None
@@ -56,6 +56,7 @@ class SwapCommitment(object):
 
         self.secret = random_secret()
         self.secret_hash = keccak(self.secret)
+
 
         self._state_machine = SwapStateMachine(self, auto_spawn_timeout)
 
@@ -111,20 +112,20 @@ class SwapCommitment(object):
         self._state_machine.transfer_receipt(receipt=transfer_receipt)
 
     def send_offer_taken(self):
-        offer_taken_msg = messages.OfferTaken(self.offer_id)
+        offer_taken_msg = messages.OfferTaken(self.order_id)
         self.queue_send(offer_taken_msg, None)
 
     def send_swap_completed(self):
-        swap_completed_message = messages.SwapCompleted(self.offer_id, timestamp.time())
+        swap_completed_message = messages.SwapCompleted(self.order_id, timestamp.time())
         self.queue_send(swap_completed_message, None)
 
     def send_maker_commitment_proof(self):
-        commitment_proof_msg = messages.CommitmentProof(self.maker_commitment_msg.signature, self.secret, self.secret_hash, self.offer_id)
+        commitment_proof_msg = messages.CommitmentProof(self.maker_commitment_msg.signature, self.secret, self.secret_hash, self.order_id)
         self.maker_commitment_proof = commitment_proof_msg
         self.queue_send(commitment_proof_msg, self.maker_address)
 
     def send_taker_commitment_proof(self):
-        commitment_proof_msg = messages.CommitmentProof(self.taker_commitment_msg.signature, self.secret, self.secret_hash, self.offer_id)
+        commitment_proof_msg = messages.CommitmentProof(self.taker_commitment_msg.signature, self.secret, self.secret_hash, self.order_id)
         self.queue_send(commitment_proof_msg, self.taker_address)
 
     def punish_maker(self):
@@ -140,8 +141,8 @@ class SwapCommitment(object):
     def refund_maker(self):
         # This has to go through!
         self.queue_refund(self.maker_transfer_receipt)
-        print(f'{type(self.offer_id)}, {self.offer_id}')
-        cancellation_proof_msg = messages.CancellationProof(self.offer_id, self.maker_commitment_proof)
+        print(f'{type(self.order_id)}, {self.order_id}')
+        cancellation_proof_msg = messages.CancellationProof(self.order_id, self.maker_commitment_proof)
         self.queue_send(cancellation_proof_msg, self.maker_address)
 
     def refund_maker_with_fee(self):

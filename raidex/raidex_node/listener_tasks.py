@@ -36,9 +36,9 @@ class OfferTakenTask(ListenerTask):
         offer_id = data
         if self.offer_book.contains(offer_id):
             log.debug('Offer {} is taken'.format(offer_id))
-            offer = self.offer_book.get_offer_by_id(offer_id)
+            offer = self.offer_book.get_order_by_id(offer_id)
             self.trades.add_pending(offer)
-            self.offer_book.remove_offer(offer_id)
+            self.offer_book.remove_order(offer_id)
 
 
 class OfferBookTask(ListenerTask):
@@ -61,6 +61,6 @@ class SwapCompletedTask(ListenerTask):
 
     def process(self, data):
         swap_completed = data
-        log.debug('Offer {} has been successfully traded'.format(pex(int_to_big_endian(swap_completed.offer_id))))
-        self.trades.report_completed(swap_completed.offer_id, swap_completed.timestamp)
+        log.debug('Offer {} has been successfully traded'.format(pex(int_to_big_endian(swap_completed.order_id))))
+        self.trades.report_completed(swap_completed.order_id, swap_completed.timestamp)
 

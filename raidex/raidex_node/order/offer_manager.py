@@ -16,7 +16,7 @@ class OfferManager:
         self.offers = {}
 
     def add_offer(self, offer):
-        self.offers[offer.offer_id] = offer
+        self.offers[offer.order_id] = offer
 
     def has_offer(self, offer_id):
         return offer_id in self.offers
@@ -32,7 +32,7 @@ class OfferManager:
                                               offer_lifetime=order.lifetime,
                                               trader_role=TraderRole.MAKER)
 
-        self.offers[new_offer.offer_id] = new_offer
+        self.offers[new_offer.order_id] = new_offer
 
         #logger.debug(f'New Offer: {new_offer.offer_id}')
         return new_offer
@@ -40,6 +40,6 @@ class OfferManager:
     def create_take_offer(self, offer):
         take_offer = OfferFactory.create_from_basic(offer, TraderRole.TAKER)
 
-        self.offers[take_offer.offer_id] = take_offer
+        self.offers[take_offer.order_id] = take_offer
         #logger.debug(f'New Take Offer: {take_offer.offer_id}')
         return take_offer

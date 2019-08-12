@@ -1,6 +1,6 @@
 class CommitmentServiceEvent:
-    def __init__(self, offer):
-        self.offer = offer
+    def __init__(self, order):
+        self.order = order
 
 
 class CommitEvent(CommitmentServiceEvent):
@@ -12,8 +12,8 @@ class CommitmentProvedEvent(CommitmentServiceEvent):
 
 
 class ReceivedInboundEvent(CommitmentServiceEvent):
-    def __init__(self, offer, raiden_event):
-        super(ReceivedInboundEvent, self).__init__(offer)
+    def __init__(self, order, raiden_event):
+        super(ReceivedInboundEvent, self).__init__(order)
         self.raiden_event = raiden_event
 
 

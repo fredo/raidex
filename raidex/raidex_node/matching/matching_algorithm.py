@@ -1,8 +1,8 @@
 
 
-def match_limit(offer_book, order):
+def match_limit(order_book, order):
 
-    matching_offers = offer_book.get_offers_by_price(order.price, order.order_type)
+    matching_offers = order_book.get_orders_by_price(order.price, order.order_type)
     matching_offers.sort(key=lambda x: x.base_amount, reverse=True)
     amount_left = order.amount
     take_offers = list()

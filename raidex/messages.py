@@ -3,7 +3,7 @@ import base64
 
 from copy import deepcopy
 import rlp
-from rlp.sedes import BigEndianInt, Binary
+from rlp.sedes import BigEndianInt, Binary, CountableList
 from eth_utils import (keccak, big_endian_to_int, int_to_big_endian, encode_hex, decode_hex)
 from eth_keys import keys
 from raidex.utils import pex
@@ -17,6 +17,7 @@ int32 = BigEndianInt(32)
 int256 = BigEndianInt(256)
 hash32 = Binary.fixed_length(32)
 trie_root = Binary.fixed_length(32, allow_empty=True)
+take_trades = CountableList(int32, 10)
 
 
 def sign(messagedata, private_key):
@@ -169,7 +170,7 @@ class OrderMessage(RLPHashable):
             h = b''
         return '<%s(%s) ask: %s[%s] bid %s[%s] h:%s>' % (
             self.__class__.__name__,
-            pex(int_to_big_endian(self.offer_id)),
+            pex(int_to_big_endian(self.order_id)),
             pex(self.ask_token),
             self.ask_amount,
             pex(self.bid_token),
@@ -185,6 +186,7 @@ class Commitment(Signed):
         ('order_hash', hash32),
         ('timeout', int256),
         ('amount', int256),
+        ('take_orders', take_trades)
     ] + Signed.fields
 
     def __init__(self, order_id, order_hash, timeout, amount, signature=None, cmdid=None):
@@ -236,12 +238,12 @@ class CommitmentProof(Signed):
         ('commitment_sig', sig65),
         ('secret', hash32),
         ('secret_hash', hash32),
-        ('offer_id', int32)
+        ('order_id', int32)
     ] + Signed.fields
 
-    def __init__(self, commitment_sig, secret, secret_hash, offer_id, signature=None, cmdid=None):
+    def __init__(self, commitment_sig, secret, secret_hash, order_id, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(CommitmentProof, self).__init__(commitment_sig, secret, secret_hash, offer_id, signature, cmdid)
+        super(CommitmentProof, self).__init__(commitment_sig, secret, secret_hash, order_id, signature, cmdid)
 
 
 class Cancellation(Signed):
@@ -258,16 +260,16 @@ class Cancellation(Signed):
 class CancellationProof(Signed):
 
     fields = [
-        ('offer_id', int32),
+        ('order_id', int32),
         ('cancellation_proof', CommitmentProof)
     ] + Signed.fields
 
-    def __init__(self, offer_id, cancellation_proof, signature=None, cmdid=None):
+    def __init__(self, order_id, cancellation_proof, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(CancellationProof, self).__init__(offer_id, cancellation_proof, signature, cmdid)
+        super(CancellationProof, self).__init__(order_id, cancellation_proof, signature, cmdid)
 
 
-class ProvenOffer(Signed):
+class ProvenOrder(Signed):
     """A `ProvenOffer` is published by a market maker and pushed to one ore more broadcast services.
     A taker should recover the commitment service address from the `commitment_proof` and commit to it, if
     they want to engage in the swap.
@@ -288,13 +290,13 @@ class ProvenOffer(Signed):
         }
     """
     fields = [
-        ('offer', OrderMessage),
+        ('order', OrderMessage),
         ('commitment_proof', CommitmentProof),
     ] + Signed.fields
 
-    def __init__(self, offer, commitment_proof, signature=None, cmdid=None):
+    def __init__(self, order, commitment_proof, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(ProvenOffer, self).__init__(offer, commitment_proof, signature, cmdid)
+        super(ProvenOrder, self).__init__(order, commitment_proof, signature, cmdid)
 
 
 class ProvenCommitment(Signed):
@@ -412,8 +414,8 @@ class SwapCompleted(SwapExecution):
 
 
 msg_types_map = dict(
-        offer=OrderMessage,
-        proven_offer=ProvenOffer,
+        order_message=OrderMessage,
+        proven_offer=ProvenOrder,
         proven_commitment=ProvenCommitment,
         commitment=Commitment,
         commitment_proof=CommitmentProof,
@@ -428,7 +430,7 @@ msg_types_map = dict(
 types_msg_map = {value: key for key, value in msg_types_map.items()}
 
 msg_cmdid_map = dict(
-        offer=1,
+        order_message=1,
         proven_offer=2,
         proven_commitment=3,
         commitment=4,

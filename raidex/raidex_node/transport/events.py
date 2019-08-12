@@ -1,5 +1,6 @@
-from raidex.utils import timestamp
-from raidex.raidex_node.order.offer import OfferType, Offer
+from raidex.utils.timestamp import time_int, time_plus
+from raidex.raidex_node.order.offer import OrderType
+from raidex.raidex_node.order.limit_order import LimitOrder
 from raidex.raidex_node.market import TokenPair
 import raidex.messages as message_format
 
@@ -37,17 +38,17 @@ class BroadcastEvent(SendMessageEvent):
         raise NotImplementedError
 
 
-class SendProvenOfferEvent(SendMessageEvent, SignMessageEvent):
+class SendProvenOrderEvent(SendMessageEvent, SignMessageEvent):
 
-    def __init__(self, offer, market, target='broadcast'):
+    def __init__(self, order, market, target='broadcast'):
         target = target if target is not None else 'broadcast'
-        super(SendProvenOfferEvent, self).__init__(target)
-        self.offer = offer
+        super(SendProvenOrderEvent, self).__init__(target)
+        self.order = order
         self.market = market
 
     def _generate_message(self):
-        offer_msg = _create_offer_msg(self.offer, self.market)
-        return message_format.ProvenOffer(offer_msg, self.offer.proof)
+        order_msg = _create_order_msg(self.order, self.market)
+        return message_format.ProvenOrder(order_msg, self.order.commitment_proof)
 
 
 class CancellationEvent(SendMessageEvent, SignMessageEvent):
@@ -62,18 +63,18 @@ class CancellationEvent(SendMessageEvent, SignMessageEvent):
 
 class CommitmentEvent(SendMessageEvent, SignMessageEvent):
 
-    def __init__(self, target, offer, commitment_amount, market):
+    def __init__(self, target, order, commitment_amount, market):
         super(CommitmentEvent, self).__init__(target)
-        self.offer = offer
+        self.order = order
         self.market = market
         self.commitment_amount = commitment_amount
 
     def _generate_message(self):
 
-        offer_msg = _create_offer_msg(self.offer, self.market)
-        return message_format.Commitment(self.offer.offer_id,
-                                         offer_msg.hash,
-                                         self.offer.timeout_date,
+        order_msg = _create_order_msg(self.order, self.market)
+        return message_format.Commitment(self.order.order_id,
+                                         order_msg.hash,
+                                         self.order.timeout_date,
                                          self.commitment_amount)
 
 
@@ -82,26 +83,28 @@ class SendExecutedEventEvent(SendMessageEvent, SignMessageEvent):
     def __init__(self, target, offer_id):
         super(SendExecutedEventEvent, self).__init__(target)
         self.offer_id = offer_id
-        self.timestamp_ = timestamp.time_int()
+        self.timestamp_ = time_int()
 
     def _generate_message(self):
         return message_format.SwapExecution(self.offer_id, self.timestamp_)
 
 
-def _create_offer_msg(offer, market):
-    # type: (Offer, TokenPair) -> message_format.SwapOffer
+def _create_order_msg(order, market):
+    # type: (LimitOrder, TokenPair) -> message_format.OrderMessage
 
-    timeout = offer.timeout_date
+    timeout_date = order.timeout_date
 
-    if offer.type == OfferType.SELL:
+    if order.order_type == OrderType.SELL:
         return message_format.OrderMessage(market.quote_token,
-                                           offer.quote_amount,
+                                           order.quote_amount,
                                            market.base_token,
-                                           offer.base_amount,
-                                           offer.offer_id, timeout)
+                                           order.base_amount,
+                                           order.order_id,
+                                           timeout_date)
     else:
         return message_format.OrderMessage(market.base_token,
-                                           offer.base_amount,
+                                           order.base_amount,
                                            market.quote_token,
-                                           offer.quote_amount,
-                                           offer.offer_id, timeout)
+                                           order.quote_amount,
+                                           order.order_id,
+                                           timeout_date)

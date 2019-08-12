@@ -1,9 +1,11 @@
 
 from raidex.raidex_node.architecture.event_architecture import dispatch_events
 from raidex.raidex_node.order.offer import Offer, TraderRole
+from raidex.raidex_node.order.limit_order import LimitOrder
 from raidex.raidex_node.market import TokenPair
 from raidex.raidex_node.trader.events import SwapInitEvent
 from raidex.raidex_node.trader.listener.events import ExpectInboundEvent
+
 from datetime import datetime
 
 
@@ -19,8 +21,8 @@ class Match:
         def address(self):
             return self.target
 
-    def __init__(self, offer: Offer, trader_role: TraderRole, commitment, commitment_proof):
-        self.offer = offer
+    def __init__(self, order: LimitOrder, trader_role: TraderRole, commitment, commitment_proof):
+        self.order = order
         self.trader_role = trader_role
         self.target_data = Match.TargetData(commitment, commitment_proof)
         self.match_time = datetime.utcnow()
@@ -34,21 +36,21 @@ class Match:
         return not self.is_maker()
 
     def get_send_amount(self):
-        if self.is_maker() and self.offer.is_buy() or self.is_taker() and self.offer.is_sell():
-            return self.offer.quote_amount
-        return self.offer.base_amount
+        if self.is_maker() and self.order.is_buy() or self.is_taker() and self.order.is_sell():
+            return self.order.quote_amount
+        return self.order.base_amount
 
     def get_token_from_market(self, market: TokenPair):
-        if self.is_maker() and self.offer.is_buy() or self.is_taker() and self.offer.is_sell():
+        if self.is_maker() and self.order.is_buy() or self.is_taker() and self.order.is_sell():
             return market.checksum_quote_address
         return market.checksum_base_address
 
     def matched(self):
-        self.offer.found_match()
+        self.order.found_match()
         self.on_enter_exchanging()
 
     def received_inbound(self, raiden_event):
-        self.offer.received_inbound(raiden_event=raiden_event)
+        self.order.received_inbound(raiden_event=raiden_event)
         self.completed()
 
     def completed(self):
@@ -65,7 +67,7 @@ class Match:
         return self.target_data.commitment_proof.secret_hash
 
     def on_enter_exchanging(self):
-        dispatch_events([SwapInitEvent(self), ExpectInboundEvent(self.target, self.offer.offer_id)])
+        dispatch_events([SwapInitEvent(self), ExpectInboundEvent(self.target, self.order.offer_id)])
 
 
 class MatchFactory:

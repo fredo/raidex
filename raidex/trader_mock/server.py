@@ -4,7 +4,7 @@ import structlog
 from flask import Flask, jsonify, request, Response
 from gevent.pywsgi import WSGIServer
 
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.trader_mock.trader import Trader
 
 log = structlog.get_logger('trader.server')
@@ -16,7 +16,7 @@ trader = Trader()
 
 @app.route('/api/expect', methods=['POST'])
 def expect():
-    type_ = OfferType(request.json.get('type'))
+    type_ = OrderType(request.json.get('type'))
     base_amount = request.json.get('baseAmount')
     quote_amount = request.json.get('quoteAmount')
     self_address = request.json.get('selfAddress')
@@ -32,7 +32,7 @@ def expect():
 
 @app.route('/api/exchange', methods=['POST'])
 def exchange():
-    type_ = OfferType(request.json.get('type'))
+    type_ = OrderType(request.json.get('type'))
     base_amount = request.json.get('baseAmount')
     quote_amount = request.json.get('quoteAmount')
     self_address = request.json.get('selfAddress')

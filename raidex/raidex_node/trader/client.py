@@ -13,7 +13,7 @@ from raidex.raidex_node.trader.events import TraderEvent
 from raidex.utils.address import encode_address
 from raidex.raidex_node.matching.match import Match
 from raidex.raidex_node.market import TokenPair
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.trader_mock.trader import (
     Listener,
     EventPaymentReceivedSuccess,
@@ -53,7 +53,7 @@ class TraderClient(Processor):
         """Expect a token swap
 
         Args:
-            type_ (OfferType): of the swap related to the market
+            type_ (OrderType): of the swap related to the market
             base_amount (int): amount of base units to swap
             quote_amount: amount of quote unit to swap
             target_address: (str)
@@ -63,7 +63,7 @@ class TraderClient(Processor):
             AsyncResult: bool: indicates if the swap was successful
 
         """
-        if type_ == OfferType.BUY:
+        if type_ == OrderType.BUY:
             return self.transfer(self.market.checksum_base_address, target_address, base_amount, identifier, secret, secret_hash)
         return self.transfer(self.market.checksum_quote_address, target_address, quote_amount, identifier, secret, secret_hash)
 
@@ -73,7 +73,7 @@ class TraderClient(Processor):
         """Executes a token swap
 
            Args:
-               type_ (OfferType): of the swap related to the market
+               type_ (OrderType): of the swap related to the market
                base_amount (int): amount of base units to swap
                quote_amount: amount of quote unit to swap
                target_address: (str)
@@ -93,7 +93,7 @@ class TraderClient(Processor):
 #        if success:
 #            self._execute_exchange(type_, base_amount, quote_amount)
 #        return success
-        if type_ == OfferType.BUY:
+        if type_ == OrderType.BUY:
             return self.transfer(self.market.checksum_quote_address, target_address, quote_amount, identifier, secret, secret_hash)
         return self.transfer(self.market.checksum_base_address, target_address, base_amount, identifier, secret, secret_hash)
 
@@ -101,7 +101,7 @@ class TraderClient(Processor):
     def initiate_exchange(self, match: Match):
         target = match.target
         amount = match.get_send_amount()
-        identifier = match.offer.offer_id
+        identifier = match.order.order_id
         token = match.get_token_from_market(self.market)
         secret = match.get_secret()
         secret_hash = match.get_secret_hash()

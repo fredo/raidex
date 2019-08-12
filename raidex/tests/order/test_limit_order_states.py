@@ -1,5 +1,5 @@
 import pytest
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 from raidex.raidex_node.order.limit_order import LimitOrder
 
 
@@ -46,9 +46,9 @@ def test_limit_order_from_dict_with_id(limit_order_as_dict):
     assert order.order_id == limit_order_as_dict['order_id']
 
     if limit_order_as_dict['order_type'] == 'BUY':
-        assert order.order_type == OfferType.BUY
+        assert order.order_type == OrderType.BUY
     elif limit_order_as_dict['order_type'] == 'SELL':
-        assert order.order_type == OfferType.SELL
+        assert order.order_type == OrderType.SELL
 
     assert order.amount == limit_order_as_dict['amount']
     assert order.price == limit_order_as_dict['price']
@@ -57,14 +57,14 @@ def test_limit_order_from_dict_with_id(limit_order_as_dict):
 
 def test_add_offer(limit_order, internal_offer):
 
-    limit_order.add_offer(internal_offer)
+    limit_order.add_order(internal_offer)
     assert internal_offer == limit_order.get_open_offers()[0]
     assert len(limit_order.get_open_offers()) == 1
 
 
 # TODO needs better testing for multiple offers limit order state
 def test_limit_order_states(limit_order, internal_offer):
-    limit_order.add_offer(internal_offer)
+    limit_order.add_order(internal_offer)
 
     assert limit_order.open
     assert not limit_order.completed

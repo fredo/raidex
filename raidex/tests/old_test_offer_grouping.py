@@ -3,7 +3,7 @@ from collections import namedtuple
 from raidex.raidex_node.offer_grouping import group_offers, group_trades_from
 from raidex.utils import timestamp
 from raidex.raidex_node.trades import Trade
-from raidex.raidex_node.order.offer import OfferType
+from raidex.raidex_node.order.offer import OrderType
 
 Offer = namedtuple("Offer", "amount price timeout type offer_id")
 
@@ -11,8 +11,8 @@ Offer = namedtuple("Offer", "amount price timeout type offer_id")
 def test_same_offer_grouping():
     price_group_precision = 4
 
-    offer1 = Offer(100, 0.12349, timestamp.time_plus(1), OfferType.BUY, 123)
-    offer2 = Offer(100, 0.12341, timestamp.time_plus(1), OfferType.BUY, 124)
+    offer1 = Offer(100, 0.12349, timestamp.time_plus(1), OrderType.BUY, 123)
+    offer2 = Offer(100, 0.12341, timestamp.time_plus(1), OrderType.BUY, 124)
 
     # test group_offers
     grouped = group_offers([offer1, offer2], price_group_precision=price_group_precision)
@@ -22,8 +22,8 @@ def test_same_offer_grouping():
 def test_different_offer_grouping():
     price_group_precision = 4
 
-    offer1 = Offer(100, 0.123501, timestamp.time_plus(1), OfferType.BUY, 123)
-    offer2 = Offer(100, 0.123401, timestamp.time_plus(1), OfferType.BUY, 124)
+    offer1 = Offer(100, 0.123501, timestamp.time_plus(1), OrderType.BUY, 123)
+    offer2 = Offer(100, 0.123401, timestamp.time_plus(1), OrderType.BUY, 124)
 
     # test group_offers
     grouped = group_offers([offer1, offer2], price_group_precision=price_group_precision)
@@ -34,8 +34,8 @@ def test_trade_gouping():
     price_group_precision = 3
     time_group_interval_ms = 100
 
-    offer1 = Offer(100, 0.12349, timestamp.time_plus(1), OfferType.BUY, 123)
-    offer2 = Offer(100, 0.12501, timestamp.time_plus(1), OfferType.BUY, 124)
+    offer1 = Offer(100, 0.12349, timestamp.time_plus(1), OrderType.BUY, 123)
+    offer2 = Offer(100, 0.12501, timestamp.time_plus(1), OrderType.BUY, 124)
 
     # don't work with epoch based timestamps here
     trade1 = Trade(offer1, timestamp=100)  # should be in 100 ms bucket
