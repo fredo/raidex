@@ -189,9 +189,9 @@ class Commitment(Signed):
         ('take_orders', take_trades)
     ] + Signed.fields
 
-    def __init__(self, order_id, order_hash, timeout, amount, signature=None, cmdid=None):
+    def __init__(self, order_id, order_hash, timeout, amount, take_orders, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(Commitment, self).__init__(order_id, order_hash, timeout, amount, signature, cmdid)
+        super(Commitment, self).__init__(order_id, order_hash, timeout, amount, take_orders, signature, cmdid)
 
 
 class OfferTaken(Signed):
@@ -212,12 +212,17 @@ class OfferTaken(Signed):
     """
 
     fields = [
-        ('offer_id', int32),
+        ('trade_id', int32),
+        ('maker_order_id', int32),
+        ('taker_order_id', int32),
+        ('amount', int32),
+        ('secret', hash32),
+        ('secret_hash', hash32),
     ] + Signed.fields
 
-    def __init__(self, offer_id, signature=None, cmdid=None):
+    def __init__(self, trade_id, maker_order_id, taker_order_id, amount, secret, secret_hash, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(OfferTaken, self).__init__(offer_id, signature, cmdid)
+        super(OfferTaken, self).__init__(trade_id, maker_order_id, taker_order_id, amount, secret, secret_hash, signature, cmdid)
 
 
 class CommitmentProof(Signed):
@@ -236,14 +241,12 @@ class CommitmentProof(Signed):
 
     fields = [
         ('commitment_sig', sig65),
-        ('secret', hash32),
-        ('secret_hash', hash32),
         ('order_id', int32)
     ] + Signed.fields
 
-    def __init__(self, commitment_sig, secret, secret_hash, order_id, signature=None, cmdid=None):
+    def __init__(self, commitment_sig, order_id, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(CommitmentProof, self).__init__(commitment_sig, secret, secret_hash, order_id, signature, cmdid)
+        super(CommitmentProof, self).__init__(commitment_sig, order_id, signature, cmdid)
 
 
 class Cancellation(Signed):
@@ -383,13 +386,14 @@ class SwapExecution(Signed):
     """
 
     fields = [
-        ('offer_id', int256),
+        ('order_id', int256),
+        ('trade_id', int256),
         ('timestamp', int256),
     ] + Signed.fields
 
-    def __init__(self, offer_id, timestamp, signature=None, cmdid=None):
+    def __init__(self, order_id, trade_id, timestamp, signature=None, cmdid=None):
         cmdid = get_cmdid_for_class(self.__class__)
-        super(SwapExecution, self).__init__(offer_id, timestamp, signature, cmdid)
+        super(SwapExecution, self).__init__(order_id, trade_id, timestamp, signature, cmdid)
 
 
 class SwapCompleted(SwapExecution):

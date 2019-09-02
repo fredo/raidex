@@ -49,10 +49,10 @@ class CommitmentServiceClient(Processor):
         transfer_event = self._transfer_commitment_event(order.order_id, self.commitment_amount)
         dispatch_events([commit_msg_event, transfer_event])
 
-    def received_inbound_from_swap(self, offer_id):
-        # type: (int) -> None
-        swap_execution_event = SendExecutedEventEvent(self.commitment_service_address, offer_id)
-        dispatch_events([swap_execution_event, ExpectInboundEvent(self.commitment_service_address, offer_id)])
+    def received_inbound_from_swap(self, order_id, trade_id):
+        # type: (int, int) -> None
+        swap_execution_event = SendExecutedEventEvent(self.commitment_service_address, order_id, trade_id=trade_id)
+        dispatch_events([swap_execution_event, ExpectInboundEvent(self.commitment_service_address, order_id)])
 
     def request_cancellation(self, offer: Offer):
         cancellation_request_event = CancellationEvent(self.commitment_service_address, offer.offer_id)

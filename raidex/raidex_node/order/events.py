@@ -1,5 +1,13 @@
 from raidex.raidex_node.architecture.event_architecture import dispatch_events
-from raidex.raidex_node.commitment_service.events import CommitEvent, CommitmentProvedEvent, ReceivedInboundEvent, CancellationRequestEvent
+from raidex.raidex_node.commitment_service.events import (
+    CommitEvent,
+    CommitmentProvedEvent,
+    ReceivedInboundEvent,
+    CancellationRequestEvent,
+)
+
+from raidex.raidex_node.trader.events import SwapInitEvent
+from raidex.raidex_node.trader.listener.events import ExpectInboundEvent
 
 
 class OrderStateChange:
@@ -23,19 +31,6 @@ class OrderTimeoutEvent(OrderStateChange):
         self.timeout_date = timeout_date
 
 
-class CommitmentProofStateChange(OrderStateChange):
-
-    __slots__ = [
-        'commitment_signature',
-        'commitment_proof'
-    ]
-
-    def __init__(self, commitment_signature, commitment_proof):
-        super(CommitmentProofStateChange, self).__init__(commitment_proof.order_id)
-        self.commitment_signature = commitment_signature
-        self.commitment_proof = commitment_proof
-
-
 def on_enter_unproved(event_data):
     dispatch_events([CommitEvent(order=event_data.model)])
 
@@ -51,3 +46,13 @@ def initiate_refund(event_data):
 
 def on_enter_cancellation(event_data):
     dispatch_events([CancellationRequestEvent(order=event_data.model)])
+
+
+def on_enter_exchanging(event_data):
+
+    order = event_data.kwargs['order']
+    trade = event_data.kwargs['trade']
+    target = event_data.kwargs['target']
+
+    dispatch_events([SwapInitEvent(order, trade, target),
+                     ExpectInboundEvent(order, trade, target)])

@@ -13,8 +13,10 @@ class TransferEvent(TraderEvent):
 
 class SwapInitEvent(TraderEvent):
 
-    def __init__(self, match):
-        self.match = match
+    def __init__(self, order, trade, target):
+        self.order = order
+        self.trade = trade
+        self.target = target
 
 
 

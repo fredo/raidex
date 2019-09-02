@@ -36,9 +36,10 @@ def swap_setup_state_transitions(fsm, auto_spawn_timeout):
     fsm.add_transition('taker_commitment_msg', 'wait_for_taker', '=', before=[fsm.queue_commitment])
     fsm.add_transition('transfer_receipt', 'wait_for_taker', 'wait_for_execution',
                        conditions=[fsm.sender_sent_taker_commitment],
-                       after=[fsm.accept_taker_commitment_from_receipt, fsm.set_taker_transfer_receipt,
-                              omit_args_and_kwargs(fsm.swap.send_offer_taken),
-                              omit_args_and_kwargs(fsm.swap.send_taker_commitment_proof)])
+                       after=[fsm.accept_taker_commitment_from_receipt,
+                              fsm.set_taker_transfer_receipt,
+                              omit_args_and_kwargs(fsm.swap.send_taker_commitment_proof),
+                              omit_args_and_kwargs(fsm.swap.send_offer_taken)])
 
     fsm.add_transition('swap_execution_msg', 'wait_for_execution', 'wait_for_taker_execution',
                        conditions=[fsm.sender_is_maker],
@@ -49,14 +50,14 @@ def swap_setup_state_transitions(fsm, auto_spawn_timeout):
                        after=[fsm.set_taker_execution])
 
     fsm.add_transition('swap_execution_msg', 'wait_for_taker_execution', 'traded',
-                       conditions=[fsm.sender_is_taker],
+                       conditions=[fsm.sender_is_taker, fsm.is_completed],
                        after=[fsm.set_taker_execution,
                               omit_args_and_kwargs(fsm.swap.send_swap_completed),
                               omit_args_and_kwargs(fsm.swap.refund_maker_with_fee),
                               omit_args_and_kwargs(fsm.swap.refund_taker_with_fee),
                               'finalize'])
     fsm.add_transition('swap_execution_msg', 'wait_for_maker_execution', 'traded',
-                       conditions=[fsm.sender_is_maker],
+                       conditions=[fsm.sender_is_maker, fsm.is_completed],
                        after=[fsm.set_maker_execution,
                               omit_args_and_kwargs(fsm.swap.send_swap_completed),
                               omit_args_and_kwargs(fsm.swap.refund_maker_with_fee),
@@ -166,10 +167,14 @@ class SwapStateMachine(Machine):
     def set_taker_execution(self, event):
         swap_execution_msg = event_get_msg_kwarg(event)
         self.swap.taker_swap_execution_msg = swap_execution_msg
+        trade = self.swap.trades[swap_execution_msg.trade_id]
+        trade.success_message(swap_execution_msg.order_id)
 
     def set_maker_execution(self, event):
         swap_execution_msg = event_get_msg_kwarg(event)
         self.swap.maker_swap_execution_msg = swap_execution_msg
+        trade = self.swap.trades[swap_execution_msg.trade_id]
+        trade.success_message(swap_execution_msg.order_id)
 
     def set_maker_transfer_receipt(self, event):
         transfer_receipt = event_get_receipt_kwarg(event)
@@ -199,6 +204,11 @@ class SwapStateMachine(Machine):
         if hasattr(msg_or_receipt, 'initiator'):
             return self.swap.is_taker(msg_or_receipt.initiator)
         return self.swap.is_taker(msg_or_receipt.sender)
+
+    def is_completed(self, event):
+        if self.swap.amount_left == 0:
+            return True
+        return False
 
     def sender_sent_taker_commitment(self, event):
         msg_or_receipt = event_get_msg_or_receipt_kwarg(event)

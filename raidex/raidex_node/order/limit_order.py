@@ -4,6 +4,7 @@ from raidex.utils.random import create_random_32_bytes_id
 from raidex.utils.timestamp import time_plus
 from raidex.raidex_node.architecture.fsm import MachineModel
 from raidex.messages import OrderMessage
+from raidex.raidex_node.market import TokenPair
 
 
 class LimitOrderFactory:
@@ -83,19 +84,18 @@ class LimitOrder(MachineModel):
         self.corresponding_trades = dict()
         self.commitment_proof = None
 
-    def add_trade(self, offer):
-        self.corresponding_trades[offer.order_id] = offer
-        offer.initiating()
+    def add_trade(self, trade):
+        self.corresponding_trades[trade.trade_id] = trade
 
-    def get_open_offers(self):
+    def get_open_trades(self):
 
-        open_offers = list()
+        open_trades = list()
 
-        for offer in self.corresponding_trades.values():
-            if offer.status == 'open':
-                open_offers.append(offer)
+        for trades in self.corresponding_trades.values():
+            if trades.status == 'open':
+                open_trades.append(trades)
 
-        return open_offers
+        return open_trades
 
     @property
     def _unique_id(self):
@@ -122,13 +122,12 @@ class LimitOrder(MachineModel):
             return True
         return False
 
-    @property
     def amount_traded(self):
         amount_traded = 0
 
-        for offer in self.corresponding_trades.values():
-            if offer.state == 'completed':
-                amount_traded += offer.base_amount
+        for trade in self.corresponding_trades.values():
+            if trade.state == 'completed':
+                amount_traded += trade.base_amount
         return amount_traded
 
     @property
@@ -161,7 +160,7 @@ class LimitOrder(MachineModel):
 
     @property
     def has_proof(self):
-        if self.commitment_proof:
+        if hasattr(self, 'commitment_proof'):
             return True
         return False
 
@@ -170,4 +169,8 @@ class LimitOrder(MachineModel):
         if 'proof' in event_data.kwargs:
             self.commitment_proof = event_data.kwargs['proof']
 
+    def has_trade(self, trade_id):
+        return trade_id in self.corresponding_trades
 
+    def get_trade(self, trade_id):
+        return self.corresponding_trades[trade_id]

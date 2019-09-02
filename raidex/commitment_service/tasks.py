@@ -158,7 +158,7 @@ class CommitmentTask(ListenerTask):
             swap.hand_taker_commitment_msg(commitment_msg)
 
         else:
-            swap = self.factory.make_swap(order_id)
+            swap = self.factory.make_swap(commitment_msg)
             log_messaging.debug(str(commitment_msg))
             log_messaging.debug("Offer ID: {}".format(order_id))
             if swap is not None:
@@ -173,13 +173,13 @@ class SwapExecutionTask(ListenerTask):
 
     def process(self, data):
         swap_execution_msg = data
-        if not hasattr(swap_execution_msg, 'offer_id'):
+        if not hasattr(swap_execution_msg, 'order_id'):
             raise ValueError()
         if not isinstance(swap_execution_msg, messages.SwapExecution):
             raise ValueError()
 
         print("received Swap Execution Message")
-        offer_id = swap_execution_msg.offer_id
-        swap = self.swaps.get(offer_id)
+        order_id = swap_execution_msg.order_id
+        swap = self.swaps.get(order_id)
         if swap is not None:
             swap.hand_swap_execution_msg(swap_execution_msg)

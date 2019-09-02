@@ -17,7 +17,7 @@ from eth_keys import keys
 
 
 from raidex import messages
-from raidex.raidex_node.offer_book import OfferDeprecated, OrderType
+from raidex.raidex_node.order_book import OfferDeprecated, OrderType
 from raidex.utils import make_privkey_address, timestamp
 
 ETH = denoms.ether

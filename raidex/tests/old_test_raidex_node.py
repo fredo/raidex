@@ -4,7 +4,7 @@ import gevent
 
 from eth_utils import int_to_big_endian, keccak
 
-from raidex.raidex_node.offer_book import OfferDeprecated, OrderBook, OrderType, OrderView
+from raidex.raidex_node.order_book import OfferDeprecated, OrderBook, OrderType, OrderView
 from raidex.raidex_node.listener_tasks import OfferBookTask, SwapCompletedTask, OfferTakenTask
 from raidex.utils import timestamp
 from raidex.utils import get_market_from_asset_pair

@@ -98,15 +98,13 @@ class TraderClient(Processor):
         return self.transfer(self.market.checksum_base_address, target_address, base_amount, identifier, secret, secret_hash)
 
     @make_async
-    def initiate_exchange(self, match: Match):
-        target = match.target
-        amount = match.get_send_amount()
-        identifier = match.order.order_id
-        token = match.get_token_from_market(self.market)
-        secret = match.get_secret()
-        secret_hash = match.get_secret_hash()
+    def initiate_exchange(self, order, trade, target):
+        identifier = trade.trade_id
+        token = self.market.checksum_quote_address if order.is_buy() else self.market.checksum_base_address
+        secret = trade.get_secret()
+        secret_hash = trade.get_secret_hash()
 
-        return self.transfer(token, target, amount, identifier, secret, secret_hash)
+        return self.transfer(token, target, trade.amount, identifier, secret, secret_hash)
 
 
     @make_async

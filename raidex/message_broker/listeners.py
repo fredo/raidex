@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from raidex.message_broker.message_broker import MessageBroker
 from raidex import messages
-from raidex.raidex_node.offer_book import OrderBookEntry
+from raidex.raidex_node.order_book import OrderBookEntry
 from raidex.raidex_node.order.offer import OrderType, BasicOffer
 from raidex.raidex_node.order.limit_order import LimitOrder, LimitOrderFactory
 from raidex.raidex_node.trades import SwapCompleted
@@ -165,6 +165,17 @@ class SwapCompletedListener(MessageListener):
 class CommitmentProofListener(MessageListener):
 
     def _transform(self, message):
-        if not isinstance(message, (messages.CommitmentProof, messages.CancellationProof)):
+        if not isinstance(message, (messages.CommitmentProof, messages.CancellationProof, messages.OfferTaken)):
             return None
         return message
+
+
+class TradeListener(MessageListener):
+
+    def _transform(self, message):
+        return message
+
+    def is_listener(self, message):
+        if isinstance(message, messages.OfferTaken):
+            return True
+        return False

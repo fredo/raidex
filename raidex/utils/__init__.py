@@ -7,7 +7,6 @@ from eth_utils import keccak, big_endian_to_int, decode_hex as eth_decode_hex, e
 from eth_keys import keys
 from rlp.utils import decode_hex as rlp_decode_hex, encode_hex as rlp_encode_hex
 from raidex.exceptions import UntradableAssetPair
-from raidex.constants import EMPTY_SECRET
 
 ETHER_TOKEN_ADDRESS = eth_decode_hex(keys.PrivateKey(keccak(text='ether')).public_key.to_address())
 DEFAULT_RAIDEN_PORT = 9999  # no raiden dependency for now
@@ -38,13 +37,7 @@ def pex(data):
     return encode(data, "hex")[:8]
 
 
-def random_secret():
-    """ Return a random 32 byte secret except the 0 secret since it's not accepted in the contracts
-    """
-    while True:
-        secret = os.urandom(32)
-        if secret != EMPTY_SECRET:
-            return secret
+
 
 
 def get_market_from_asset_pair(asset_pair):

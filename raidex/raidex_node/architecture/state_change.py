@@ -1,4 +1,4 @@
-from raidex.raidex_node.offer_book import OrderBookEntry
+from raidex.raidex_node.order_book import OrderBookEntry
 
 
 class EventIterator:
@@ -66,12 +66,15 @@ class CancellationProofStateChange(OfferStateChange):
         self.cancellation_proof = cancellation_proof
 
 
-class TakerCallStateChange(StateChange):
+class NewTradeStateChange(StateChange):
 
-    def __init__(self, offer_id, initiator, commitment_proof):
-        self.offer_id = offer_id
-        self.initiator = initiator
-        self.commitment_proof = commitment_proof
+    def __init__(self, trade_id, maker_order_id, taker_order_id, amount, secret=None, secret_hash=None):
+        self.offer_id = trade_id
+        self.maker_order_id = maker_order_id
+        self.taker_order_id = taker_order_id
+        self.amount = amount
+        self.secret = secret
+        self.secret_hash = secret_hash
 
 
 class OfferPublishedStateChange(StateChange):

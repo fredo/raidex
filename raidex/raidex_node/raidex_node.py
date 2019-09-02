@@ -4,11 +4,11 @@ import structlog
 
 from raidex.raidex_node.architecture.event_architecture import Processor
 from raidex.raidex_node.architecture.state_change import StateChange
-from raidex.raidex_node.offer_book import OrderBook
+from raidex.raidex_node.order_book import OrderBook
 from raidex.raidex_node.listener_tasks import OfferBookTask
 from raidex.raidex_node.trades import TradesView
 from raidex.raidex_node.offer_grouping import group_offers, group_trades_from, make_price_bins, get_n_recent_trades
-from raidex.raidex_node.architecture.data_manager import DataManager
+from raidex.raidex_node.data_manager import DataManager
 
 monkey.patch_all()
 log = structlog.get_logger('node')

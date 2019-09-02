@@ -13,13 +13,14 @@ logger = structlog.get_logger('StateChangeHandler')
 
 class DataManager:
 
-    def __init__(self, offer_book, market):
+    def __init__(self, order_book, market):
 
         self.offer_manager = OfferManager()
         self.market = market
-        self.matching_engine = MatchingEngine(offer_book, MATCHING_ALGORITHM)
+        self.matching_engine = MatchingEngine(order_book, MATCHING_ALGORITHM)
         self.orders = dict()
         self.matches = dict()
+        self.order_book = order_book
         self.timeout_handler = TimeoutHandler()
 
     def get_open_orders(self):
@@ -28,7 +29,7 @@ class DataManager:
     def cancel_order(self, order_id):
 
         order = self.orders[order_id]
-        open_offers = order.get_open_offers()
+        open_offers = order.get_open_trades()
 
         print(open_offers)
         for offer in open_offers:
@@ -63,3 +64,15 @@ class DataManager:
             #self.timeout_handler.create_new_timeout(make_offer)
             #order.add_offer(make_offer)
 
+    def find_trade(self, trade_id):
+
+        for order in self.orders.values():
+            if order.has_trade(trade_id):
+                return order.get_trade(trade_id)
+        return None
+
+    def get_corresponding_order(self, trade_id):
+        for order in self.orders.values():
+            if order.has_trade(trade_id):
+                return order
+        return None

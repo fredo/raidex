@@ -10,7 +10,7 @@ from raidex import messages
 from raidex.message_broker.message_broker import MessageBroker
 from raidex.utils import timestamp
 from raidex.raidex_node.raidex_node import RaidexNode
-from raidex.raidex_node.offer_book import OfferDeprecated, OrderType, generate_random_offer_id
+from raidex.raidex_node.order_book import OfferDeprecated, OrderType, generate_random_offer_id
 from raidex.signing import Signer
 
 

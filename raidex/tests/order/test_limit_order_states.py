@@ -58,8 +58,8 @@ def test_limit_order_from_dict_with_id(limit_order_as_dict):
 def test_add_offer(limit_order, internal_offer):
 
     limit_order.add_order(internal_offer)
-    assert internal_offer == limit_order.get_open_offers()[0]
-    assert len(limit_order.get_open_offers()) == 1
+    assert internal_offer == limit_order.get_open_trades()[0]
+    assert len(limit_order.get_open_trades()) == 1
 
 
 # TODO needs better testing for multiple offers limit order state

@@ -3,13 +3,10 @@ from enum import Enum
 
 from eth_utils import int_to_big_endian
 
-from raidex.raidex_node.architecture.event_architecture import dispatch_events
-
 from raidex.utils import pex
 from raidex.utils.timestamp import to_str_repr, time_plus
 from raidex.utils.random import create_random_32_bytes_id
 from raidex.raidex_node.architecture.fsm import MachineModel
-from raidex.raidex_node.commitment_service.events import CommitEvent, CommitmentProvedEvent, ReceivedInboundEvent, CancellationRequestEvent
 
 
 class TraderRole(Enum):
@@ -125,8 +122,8 @@ class OfferFactory:
                             quote_amount,
                             timeout_date,
                             trader_role)
-        from raidex.raidex_node.order import fsm_offer
-        fsm_offer.add_model(offer_model)
+        from raidex.raidex_node.order import fsm_trade
+        fsm_trade.add_model(offer_model)
         return offer_model
 
     @staticmethod
@@ -138,8 +135,8 @@ class OfferFactory:
                             offer.quote_amount,
                             offer.timeout_date,
                             trader_role)
-        from raidex.raidex_node.order import fsm_offer
-        fsm_offer.add_model(offer_model)
+        from raidex.raidex_node.order import fsm_trade
+        fsm_trade.add_model(offer_model)
         return offer_model
 
 

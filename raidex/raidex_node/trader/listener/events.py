@@ -7,9 +7,10 @@ class RaidenListenerEvent:
 
 class ExpectInboundEvent(RaidenListenerEvent):
 
-    def __init__(self, initiator, identifier):
+    def __init__(self, order, trade, initiator):
+        self.order = order
+        self.trade = trade
         self.initiator = initiator
-        self.identifier = identifier
 
 
 # Events coming from Raiden

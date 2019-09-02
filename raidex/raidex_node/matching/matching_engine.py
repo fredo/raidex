@@ -1,4 +1,4 @@
-from raidex.raidex_node.offer_book import OrderBook
+from raidex.raidex_node.order_book import OrderBook
 from raidex.raidex_node.order.limit_order import LimitOrder
 
 

@@ -15,16 +15,16 @@ class MachineModel:
             print(f'Status: {self.status}')
 
 
-class OfferMachine(Machine):
+class TradeMachine(Machine):
 
     def set_state(self, state, model=None):
-        super(OfferMachine, self).set_state(state, model)
+        super(TradeMachine, self).set_state(state, model)
         if isinstance(state, str):
             state = self.get_state(state)
         model.status = state.parent.name if state.parent else state.name
 
 
-class OfferState(NestedState):
+class TradeState(NestedState):
 
     def __repr__(self):
         return self.name

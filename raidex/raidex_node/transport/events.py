@@ -75,18 +75,20 @@ class CommitmentEvent(SendMessageEvent, SignMessageEvent):
         return message_format.Commitment(self.order.order_id,
                                          order_msg.hash,
                                          self.order.timeout_date,
-                                         self.commitment_amount)
+                                         self.commitment_amount,
+                                         [])
 
 
 class SendExecutedEventEvent(SendMessageEvent, SignMessageEvent):
 
-    def __init__(self, target, offer_id):
+    def __init__(self, target, order_id, trade_id):
         super(SendExecutedEventEvent, self).__init__(target)
-        self.offer_id = offer_id
+        self.order_id = order_id
+        self.trade_id = trade_id
         self.timestamp_ = time_int()
 
     def _generate_message(self):
-        return message_format.SwapExecution(self.offer_id, self.timestamp_)
+        return message_format.SwapExecution(self.order_id, self.trade_id, self.timestamp_)
 
 
 def _create_order_msg(order, market):

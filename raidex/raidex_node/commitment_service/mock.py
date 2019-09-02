@@ -1,7 +1,7 @@
 from gevent.event import AsyncResult
 from raidex import messages
 from raidex.signing import Signer
-from raidex.raidex_node.offer_book import OfferDeprecated
+from raidex.raidex_node.order_book import OfferDeprecated
 from raidex.raidex_node.order.offer import OrderType
 from raidex.utils import timestamp
 

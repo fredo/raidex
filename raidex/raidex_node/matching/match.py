@@ -3,8 +3,7 @@ from raidex.raidex_node.architecture.event_architecture import dispatch_events
 from raidex.raidex_node.order.offer import Offer, TraderRole
 from raidex.raidex_node.order.limit_order import LimitOrder
 from raidex.raidex_node.market import TokenPair
-from raidex.raidex_node.trader.events import SwapInitEvent
-from raidex.raidex_node.trader.listener.events import ExpectInboundEvent
+
 
 from datetime import datetime
 
@@ -47,7 +46,6 @@ class Match:
 
     def matched(self):
         self.order.found_match()
-        self.on_enter_exchanging()
 
     def received_inbound(self, raiden_event):
         self.order.received_inbound(raiden_event=raiden_event)
@@ -66,8 +64,7 @@ class Match:
     def get_secret_hash(self):
         return self.target_data.commitment_proof.secret_hash
 
-    def on_enter_exchanging(self):
-        dispatch_events([SwapInitEvent(self), ExpectInboundEvent(self.target, self.order.offer_id)])
+
 
 
 class MatchFactory:
